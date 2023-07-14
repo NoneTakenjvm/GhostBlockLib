@@ -1,0 +1,6 @@
+name: GhostBlockLib
+version: '${project.version}'
+main: me.nonetaken.ghostblocklib.GhostBlockLib
+authors: [ NoneTaken ]
+description: A library to handle GhostBlock regions
+depend: [ ProtocolLib ]
