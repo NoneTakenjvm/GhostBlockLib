@@ -1,18 +1,13 @@
 package me.nonetaken.ghostblocklib;
 
-import com.comphenix.packetwrapper.WrapperPlayServerMultiBlockChange;
-import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
-import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
-import com.comphenix.protocol.wrappers.WrappedBlockData;
 import lombok.Getter;
-import me.nonetaken.ghostblocklib.util.IntTriple;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMultiBlockChange;
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.craftbukkit.v1_8_R3.CraftChunk;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -30,7 +25,7 @@ public class GhostBlockChunk {
     private final int chunkX;
     private final int chunkZ;
     private final GhostBlock[][][] blocks = new GhostBlock[16][256][16]; // x y z
-    private final List<IntTriple> changes = Collections.synchronizedList(new ArrayList<>(1024));
+    private final List<Vector> changes = Collections.synchronizedList(new ArrayList<>(1024));
     private int changeCount = 0;
 
     protected GhostBlockChunk(GhostBlockCuboid parent, int chunkX, int chunkZ) {
@@ -60,7 +55,7 @@ public class GhostBlockChunk {
     public synchronized void setBlock(GhostBlock block) {
         this.blocks[Math.floorMod(block.getX(), 16)][block.getY()][Math.floorMod(block.getZ(), 16)] = block;
         if (1024 >= ++this.changeCount) {
-            this.changes.add(new IntTriple(block.getX(), block.getY(), block.getZ()));
+            this.changes.add(block.getVector());
         }
     }
 
@@ -82,8 +77,8 @@ public class GhostBlockChunk {
         else {
             short[] changeArray = new short[this.changeCount];
             for (int i = 0; i < this.changes.size(); i++) {
-                IntTriple changeCoordinates = this.changes.get(i);
-                GhostBlock changedBlock = this.getBlock(changeCoordinates.getX(), changeCoordinates.getY(), changeCoordinates.getZ());
+                Vector changeCoordinates = this.changes.get(i);
+                GhostBlock changedBlock = this.getBlock(changeCoordinates.getBlockX(), changeCoordinates.getBlockY(), changeCoordinates.getBlockZ());
                 if (changedBlock == null) {
                     continue;
                 }

@@ -8,6 +8,7 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import lombok.Getter;
 import me.nonetaken.ghostblocklib.event.GhostBlockBreakEvent;
+import me.nonetaken.ghostblocklib.util.BlockHardness;
 import net.minecraft.server.v1_8_R3.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bukkit.*;
@@ -37,16 +38,7 @@ public class GhostBlockManager {
                 PacketContainer packet = event.getPacket();
                 Player player = event.getPlayer();
                 StructureModifier<BlockPosition> positions = packet.getBlockPositionModifier();
-                StructureModifier<PacketPlayInBlockDig.EnumPlayerDigType> enums = packet.getEnumModifier(PacketPlayInBlockDig.EnumPlayerDigType.class, 2);
-                if (player.getGameMode() == GameMode.CREATIVE) {
-                    if (enums.read(0) != PacketPlayInBlockDig.EnumPlayerDigType.START_DESTROY_BLOCK) {
-                        return;
-                    }
-                } else {
-                    if (enums.read(0) != PacketPlayInBlockDig.EnumPlayerDigType.STOP_DESTROY_BLOCK) {
-                        return;
-                    }
-                }
+                PacketPlayInBlockDig.EnumPlayerDigType digType = packet.getEnumModifier(PacketPlayInBlockDig.EnumPlayerDigType.class, 2).read(0);
                 BlockPosition position = positions.read(0);
                 GhostBlockCuboid cuboid = getCuboidByLocation(player.getWorld(), position.getX(), position.getZ());
                 if (cuboid == null) {
@@ -55,6 +47,21 @@ public class GhostBlockManager {
                 GhostBlock block = cuboid.getBlock(position.getX(), position.getY(), position.getZ());
                 if (block == null) {
                     return;
+                }
+                // Handle breaking for creative users
+                if (player.getGameMode() == GameMode.CREATIVE) {
+                    if (digType != PacketPlayInBlockDig.EnumPlayerDigType.START_DESTROY_BLOCK) {
+                        return;
+                    }
+                    // Handle block breaking for survival users
+                } else if (player.getGameMode() == GameMode.SURVIVAL) {
+                    boolean instant = BlockHardness.canInstantBreak(player, player.getItemInHand(), block.getMaterial());
+                    if (instant && digType != PacketPlayInBlockDig.EnumPlayerDigType.START_DESTROY_BLOCK) {
+                        return;
+                    }
+                    else if (!instant && digType != PacketPlayInBlockDig.EnumPlayerDigType.STOP_DESTROY_BLOCK) {
+                        return;
+                    }
                 }
                 GhostBlockBreakEvent ghostBlockBreakEvent = new GhostBlockBreakEvent(cuboid, block, player);
                 plugin.getServer().getPluginManager().callEvent(ghostBlockBreakEvent);
