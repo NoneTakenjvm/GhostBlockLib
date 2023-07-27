@@ -22,7 +22,7 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public final class GhostBlockLib extends JavaPlugin {
+public final class GhostBlockLib extends JavaPlugin implements CommandExecutor {
 
     @Getter private static GhostBlockLib INSTANCE;
 
@@ -31,10 +31,23 @@ public final class GhostBlockLib extends JavaPlugin {
     public void onEnable() {
         INSTANCE = this;
         new GhostBlockManager(this);
+
+        this.getCommand("test").setExecutor(this);
     }
 
     @Override
     public void onDisable() {
         INSTANCE = null;
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        Player player = (Player) sender;
+        Location origin = player.getLocation();
+        GhostBlockCuboid cuboid = new GhostBlockCuboid(origin.getWorld(), origin.toVector().add(new Vector(-10, -10, -10)), origin.toVector().add(new Vector(10, 0, 10)));
+        cuboid.fill(block -> block.setType(Material.BEDROCK));
+        cuboid.refresh(player);
+        player.sendMessage("Done");
+        return true;
     }
 }

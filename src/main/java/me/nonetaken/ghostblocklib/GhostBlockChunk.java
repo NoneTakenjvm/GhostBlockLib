@@ -3,6 +3,7 @@ package me.nonetaken.ghostblocklib;
 import lombok.Getter;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMultiBlockChange;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.craftbukkit.v1_8_R3.CraftChunk;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
@@ -70,7 +71,6 @@ public class GhostBlockChunk {
             Chunk chunk = players[0].getWorld().getChunkAt(this.chunkX, this.chunkZ);
             net.minecraft.server.v1_8_R3.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
             for (Player player : players) {
-                ((CraftPlayer) player).getHandle().playerConnection.sendPacket(new PacketPlayOutMapChunk(nmsChunk, true, 0));
                 ((CraftPlayer) player).getHandle().playerConnection.sendPacket(new PacketPlayOutMapChunk(nmsChunk, true, 65535));
             }
         }
