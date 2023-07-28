@@ -1,11 +1,13 @@
 package me.nonetaken.ghostblocklib;
 
+import com.comphenix.packetwrapper.WrapperPlayServerBlockChange;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.*;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
+import com.comphenix.protocol.wrappers.WrappedBlockData;
 import lombok.Getter;
 import me.nonetaken.ghostblocklib.event.BlockPlaceAgainstGhostBlockEvent;
 import me.nonetaken.ghostblocklib.event.GhostBlockBreakEvent;
@@ -80,7 +82,19 @@ public class GhostBlockManager {
                 }
                 GhostBlockBreakEvent ghostBlockBreakEvent = new GhostBlockBreakEvent(cuboid, block, player);
                 plugin.getServer().getPluginManager().callEvent(ghostBlockBreakEvent);
+                if (ghostBlockBreakEvent.isCancelled()) {
+                    return;
+                }
                 cuboid.setBlock(new GhostBlock(position.getX(), position.getY(), position.getZ()).setType(Material.AIR));
+                // Notify nearby players of the block change
+                WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange();
+                changePacket.setLocation(position);
+                changePacket.setBlockData(WrappedBlockData.createData(Material.AIR));
+                for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                    if (onlinePlayer.getWorld() == player.getWorld() && onlinePlayer.getLocation().distance(player.getLocation()) < 64) {
+                        changePacket.sendPacket(onlinePlayer);
+                    }
+                }
                 event.setCancelled(true);
             }
         });
