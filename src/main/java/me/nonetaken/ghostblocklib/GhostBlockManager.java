@@ -7,6 +7,7 @@ import com.comphenix.protocol.events.*;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import lombok.Getter;
+import me.nonetaken.ghostblocklib.event.BlockPlaceAgainstGhostBlockEvent;
 import me.nonetaken.ghostblocklib.event.GhostBlockBreakEvent;
 import me.nonetaken.ghostblocklib.util.BlockHardness;
 import me.nonetaken.ghostblocklib.util.Utils;
@@ -18,7 +19,10 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.craftbukkit.v1_8_R3.CraftChunk;
+import org.bukkit.craftbukkit.v1_8_R3.block.CraftBlock;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Field;
@@ -56,14 +60,21 @@ public class GhostBlockManager {
                 // Handle breaking for creative users
                 if (player.getGameMode() == GameMode.CREATIVE) {
                     if (digType != PacketPlayInBlockDig.EnumPlayerDigType.START_DESTROY_BLOCK) {
+                        event.setCancelled(true);
                         return;
                     }
                     // Handle block breaking for survival users
                 } else if (player.getGameMode() == GameMode.SURVIVAL) {
+                    if (digType == PacketPlayInBlockDig.EnumPlayerDigType.ABORT_DESTROY_BLOCK) {
+                        event.setCancelled(true);
+                        return;
+                    }
                     boolean instant = BlockHardness.canInstantBreak(player, player.getItemInHand(), block.getMaterial());
                     if (instant && digType != PacketPlayInBlockDig.EnumPlayerDigType.START_DESTROY_BLOCK) {
+                        event.setCancelled(true);
                         return;
                     } else if (!instant && digType != PacketPlayInBlockDig.EnumPlayerDigType.STOP_DESTROY_BLOCK) {
+                        event.setCancelled(true);
                         return;
                     }
                 }
@@ -79,13 +90,12 @@ public class GhostBlockManager {
             public void onPacketReceiving(PacketEvent event) {
                 PacketContainer packet = event.getPacket();
                 Player player = event.getPlayer();
-                StructureModifier<BlockPosition> positions = packet.getBlockPositionModifier();
-                BlockPosition position = positions.read(0);
-                GhostBlockCuboid cuboid = getCuboidByLocation(player.getWorld(), position.getX(), position.getZ());
+                Location position = packet.getBlockPositionModifier().read(0).toLocation(event.getPlayer().getWorld());
+                GhostBlockCuboid cuboid = getCuboidByLocation(player.getWorld(), position.getBlockX(), position.getBlockZ());
                 if (cuboid == null) {
                     return;
                 }
-                GhostBlock block = cuboid.getBlock(position.getX(), position.getY(), position.getZ());
+                GhostBlock block = cuboid.getBlock(position.getBlockX(), position.getBlockY(), position.getBlockZ());
                 if (block == null) {
                     return;
                 }
@@ -97,13 +107,34 @@ public class GhostBlockManager {
                 if (!item.getType().isBlock() && !item.getType().isSolid()) {
                     return;
                 }
-                player.getWorld().getBlockAt(position.getX(), position.getY(), position.getZ()).getRelative(BlockFace.UP).setType(item.getType());
-                if (item.getAmount() == 0) {
-                    player.setItemInHand(null);
+                int face = packet.getIntegers().read(0);
+                Location newLocation = position.clone();
+                if (face == 0) {
+                    newLocation.add(0, -1, 0);
+                } else if (face == 1) {
+                    newLocation.add(0, 1, 0);
+                } else if (face == 2) {
+                    newLocation.add(0, 0, -1);
+                } else if (face == 3) {
+                    newLocation.add(0, 0, 1);
+                } else if (face == 4) {
+                    newLocation.add(-1, 0, 0);
+                } else if (face == 5) {
+                    newLocation.add(1, 0, 0);
                 }
-                else {
-                    item.setAmount(item.getAmount() - 1);
-                    player.setItemInHand(item);
+                BlockPlaceAgainstGhostBlockEvent placeEvent = new BlockPlaceAgainstGhostBlockEvent(player, cuboid, newLocation, item.getData());
+                Bukkit.getPluginManager().callEvent(placeEvent);
+                if (!placeEvent.isCancelled()) {
+                    newLocation.getBlock().setType(item.getType());
+                    if (player.getGameMode() == GameMode.CREATIVE) {
+                        return;
+                    }
+                    if (item.getAmount() == 0) {
+                        player.setItemInHand(null);
+                    } else {
+                        item.setAmount(item.getAmount() - 1);
+                        player.setItemInHand(item);
+                    }
                 }
             }
         });

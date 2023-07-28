@@ -17,99 +17,64 @@ public class BlockHardness {
     public static float getHardness(Material material) {
         switch (material) {
             case DIRT:
-                return 0.5f;
-            case STONE:
-                return 1.5f;
-            case COBBLESTONE:
-                return 2f;
-            case COAL_ORE:
-                return 3f;
+            case PACKED_ICE:
+            case ICE:
+            case SLIME_BLOCK:
+            case SOUL_SAND:
             case SAND:
                 return 0.5f;
+            case STONE:
+            case PRISMARINE:
+                return 1.5f;
+            case COBBLESTONE:
+            case BRICK:
+            case MOSSY_COBBLESTONE:
+            case WOOD:
+            case NETHER_BRICK:
+            case LOG:
+                return 2f;
+            case COAL_ORE:
+            case ENDER_STONE:
+            case QUARTZ_ORE:
+            case EMERALD_ORE:
+            case DIAMOND_ORE:
+            case GOLD_ORE:
+            case REDSTONE_ORE:
+            case LAPIS_ORE:
             case IRON_ORE:
                 return 3f;
             case GRAVEL:
-                return 0.6f;
+            case SPONGE:
             case CLAY:
                 return 0.6f;
             case STAINED_CLAY:
+            case HARD_CLAY:
                 return 1.25f;
-            case LAPIS_ORE:
-                return 3f;
-            case LOG:
-                return 2f;
-            case REDSTONE_ORE:
-                return 3f;
             case COAL_BLOCK:
-                return 5f;
+            case GOLD_BLOCK:
+            case REDSTONE_BLOCK:
+            case IRON_BLOCK:
+            case EMERALD_BLOCK:
+            case DIAMOND_BLOCK:
             case LAPIS_BLOCK:
                 return 5f;
             case SEA_LANTERN:
-                return 0.3f;
-            case GOLD_ORE:
-                return 3f;
-            case NETHERRACK:
-                return 0.4f;
-            case SOUL_SAND:
-                return 0.5f;
-            case IRON_BLOCK:
-                return 5f;
-            case REDSTONE_BLOCK:
-                return 5f;
             case GLOWSTONE:
-                return 0.3f;
-            case PRISMARINE:
-                return 1.5f;
-            case GOLD_BLOCK:
-                return 5f;
-            case DIAMOND_ORE:
-                return 3f;
-            case EMERALD_ORE:
-                return 3f;
-            case MOSSY_COBBLESTONE:
-                return 2f;
-            case SLIME_BLOCK:
-                return 0.5f;
-            case SNOW_BLOCK:
-                return 0.2f;
+            case STAINED_GLASS:
             case GLASS:
                 return 0.3f;
+            case NETHERRACK:
+                return 0.4f;
+            case SNOW_BLOCK:
+                return 0.2f;
             case QUARTZ_BLOCK:
-                return 0.8f;
-            case HARD_CLAY:
-                return 1.25f;
-            case QUARTZ_ORE:
-                return 3f;
-            case BRICK:
-                return 2f;
+            case SANDSTONE:
+            case RED_SANDSTONE:
+            case QUARTZ:
             case WOOL:
                 return 0.8f;
-            case DIAMOND_BLOCK:
-                return 5f;
-            case SPONGE:
-                return 0.6f;
             case OBSIDIAN:
                 return 50f;
-            case EMERALD_BLOCK:
-                return 5f;
-            case STAINED_GLASS:
-                return 0.3f;
-            case ICE:
-                return 0.5f;
-            case PACKED_ICE:
-                return 0.5f;
-            case QUARTZ:
-                return 0.8f;
-            case ENDER_STONE:
-                return 3f;
-            case NETHER_BRICK:
-                return 2f;
-            case RED_SANDSTONE:
-                return 0.8f;
-            case SANDSTONE:
-                return 0.8f;
-            case WOOD:
-                return 2f;
             default:
                 return 1f;
         }
@@ -201,6 +166,16 @@ public class BlockHardness {
             case WEB:
             case WOOL:
                 return Objects.requireNonNull(item) == Material.SHEARS;
+            // no best tool
+            case SEA_LANTERN:
+            case SPONGE:
+            case GLASS:
+            case STAINED_GLASS:
+            case STAINED_GLASS_PANE:
+            case THIN_GLASS:
+            case GLOWSTONE: {
+                return false;
+            }
         }
         // default for pickaxe true // may need changing
         return true;
@@ -255,9 +230,9 @@ public class BlockHardness {
         float speedMultiplier = 1f;
         if (isBestTool(block, itemStack.getType())) {
             speedMultiplier = getToolSpeed(itemStack.getType());
-        }
-        if (itemStack.getEnchantmentLevel(Enchantment.DIG_SPEED) > 0) {
-            speedMultiplier += Math.pow(itemStack.getEnchantmentLevel(Enchantment.DIG_SPEED), 2) + 1;
+            if (itemStack.getEnchantmentLevel(Enchantment.DIG_SPEED) > 0) {
+                speedMultiplier += Math.pow(itemStack.getEnchantmentLevel(Enchantment.DIG_SPEED), 2) + 1;
+            }
         }
         for (PotionEffect potionEffect : player.getActivePotionEffects()) {
             if (potionEffect.getType().equals(PotionEffectType.FAST_DIGGING)) {
