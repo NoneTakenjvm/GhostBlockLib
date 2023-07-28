@@ -97,9 +97,14 @@ public class GhostBlockManager {
                 if (!item.getType().isBlock() && !item.getType().isSolid()) {
                     return;
                 }
-                Block target = player.getWorld().getBlockAt(position.getX(), position.getY(), position.getZ());
-                BlockFace face = Utils.getBlockFace(player);
-                target.getRelative(face).setType(item.getType());
+                player.getWorld().getBlockAt(position.getX(), position.getY(), position.getZ()).getRelative(BlockFace.UP).setType(item.getType());
+                if (item.getAmount() == 0) {
+                    player.setItemInHand(null);
+                }
+                else {
+                    item.setAmount(item.getAmount() - 1);
+                    player.setItemInHand(item);
+                }
             }
         });
         // Handle placement of bulk map chunk packets
