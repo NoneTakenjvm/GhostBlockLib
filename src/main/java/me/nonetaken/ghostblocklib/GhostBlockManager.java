@@ -16,6 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.bukkit.*;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -35,7 +37,7 @@ public class GhostBlockManager {
     public GhostBlockManager(GhostBlockLib plugin) {
         ProtocolManager manager = ProtocolLibrary.getProtocolManager();
         // Handle breaking of ghost blocks
-        manager.addPacketListener(new PacketAdapter(plugin, ListenerPriority.NORMAL, Collections.singleton(PacketType.Play.Client.BLOCK_DIG)) {
+        manager.addPacketListener(new PacketAdapter(plugin, ListenerPriority.NORMAL, Collections.singleton(PacketType.Play.Client.BLOCK_DIG), ListenerOptions.SYNC) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 PacketContainer packet = event.getPacket();
@@ -72,7 +74,7 @@ public class GhostBlockManager {
             }
         });
         // Handle interactions with ghost blocks
-        manager.addPacketListener(new PacketAdapter(plugin, ListenerPriority.NORMAL, Collections.singleton(PacketType.Play.Client.BLOCK_PLACE)) {
+        manager.addPacketListener(new PacketAdapter(plugin, ListenerPriority.NORMAL, Collections.singleton(PacketType.Play.Client.BLOCK_PLACE), ListenerOptions.SYNC) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 PacketContainer packet = event.getPacket();
@@ -95,7 +97,9 @@ public class GhostBlockManager {
                 if (!item.getType().isBlock() && !item.getType().isSolid()) {
                     return;
                 }
-                player.getWorld().getBlockAt(position.getX(), position.getY(), position.getZ()).setType(item.getType());
+                Block target = player.getWorld().getBlockAt(position.getX(), position.getY(), position.getZ());
+                BlockFace face = Utils.getBlockFace(player);
+                target.getRelative(face).setType(item.getType());
             }
         });
         // Handle placement of bulk map chunk packets
