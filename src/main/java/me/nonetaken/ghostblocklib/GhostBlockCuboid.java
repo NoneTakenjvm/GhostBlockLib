@@ -153,7 +153,7 @@ public class GhostBlockCuboid {
      */
     public synchronized void refresh(Player... players) {
         for (GhostBlockChunk chunk : this.chunks.values()) {
-            chunk.flushChanges(players);
+            chunk.refresh(players);
         }
     }
 

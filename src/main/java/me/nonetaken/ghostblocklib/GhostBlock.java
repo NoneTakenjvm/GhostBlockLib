@@ -1,5 +1,8 @@
 package me.nonetaken.ghostblocklib;
 
+import com.comphenix.protocol.wrappers.WrappedBlockData;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
+import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.server.v1_8_R3.Block;
@@ -26,8 +29,12 @@ public class GhostBlock {
     private int x; // world x coordinatae
     private int y; // world y coordinate
     private int z; // world z coordinate
-    private Material material;
+    private Material material = Material.AIR;
     private byte data;
+
+    public GhostBlock(Vector vector) {
+        this(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
+    }
 
     public GhostBlock(int x, int y, int z) {
         this.x = x;
@@ -47,6 +54,14 @@ public class GhostBlock {
         return this;
     }
 
+    public Vector getVector() {
+        return new Vector(this.x, this.y, this.z);
+    }
+
+    public Location getLocation(World world) {
+        return this.getVector().toLocation(world);
+    }
+
     public int getCombinedID() {
         return this.material.getId() + (this.data << 12);
     }
@@ -55,11 +70,11 @@ public class GhostBlock {
         return Block.d.b(Block.getByCombinedId(this.getCombinedID()));
     }
 
-    public Vector getVector() {
-        return new Vector(this.x, this.y, this.z);
+    public MaterialData getMaterialData() {
+        return new MaterialData(this.material, this.data);
     }
 
-    public Location getLocation(World world) {
-        return this.getVector().toLocation(world);
+    public WrappedBlockData getWrappedBlockData() {
+        return WrappedBlockData.createData(this.material, this.data);
     }
 }

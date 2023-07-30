@@ -27,18 +27,15 @@ public class BlockPlaceAgainstGhostBlockEvent extends WrappedBukkitEvent impleme
         this.cuboid = cuboid;
         this.location = location;
         this.materialData = materialData;
-        Bukkit.broadcastMessage("created, cancelled="+this.cancelled);
     }
 
     @Override
     public boolean isCancelled() {
-        Bukkit.broadcastMessage("returning cancelled as " + this.cancelled);
         return this.cancelled;
     }
 
     @Override
     public void setCancelled(boolean b) {
-        Bukkit.broadcastMessage("set cancelled to "+b);
         this.cancelled = b;
     }
 }

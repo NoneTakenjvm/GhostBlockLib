@@ -1,6 +1,12 @@
 package me.nonetaken.ghostblocklib;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
+import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
+import com.comphenix.protocol.wrappers.WrappedBlockData;
 import lombok.Getter;
+import me.nonetaken.ghostblocklib.util.MultiBlockChangeWrapper;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMultiBlockChange;
 import org.bukkit.Bukkit;
@@ -26,8 +32,7 @@ public class GhostBlockChunk {
     private final int chunkX;
     private final int chunkZ;
     private final GhostBlock[][][] blocks = new GhostBlock[16][256][16]; // x y z
-    private final List<Vector> changes = Collections.synchronizedList(new ArrayList<>(1024));
-    private int changeCount = 0;
+    private final List<Vector> changes = Collections.synchronizedList(new ArrayList<>());
 
     protected GhostBlockChunk(GhostBlockCuboid parent, int chunkX, int chunkZ) {
         this.parent = parent;
@@ -55,41 +60,28 @@ public class GhostBlockChunk {
      */
     public synchronized void setBlock(GhostBlock block) {
         this.blocks[Math.floorMod(block.getX(), 16)][block.getY()][Math.floorMod(block.getZ(), 16)] = block;
-        if (1024 >= ++this.changeCount) {
-            this.changes.add(block.getVector());
-        }
+        this.changes.add(block.getVector());
+
     }
 
     /**
      * Refresh this chunk for the provided {@link Player}s
-     * This function will reset {@link #changeCount} to 0, so all players that should see the changes should be provided
+     * So all players that should see the changes should be provided
      *
      * @param players the players to refresh this chunk for
      */
-    public synchronized void flushChanges(Player... players) {
-        if (this.changeCount > 1024) {
-            Chunk chunk = players[0].getWorld().getChunkAt(this.chunkX, this.chunkZ);
-            net.minecraft.server.v1_8_R3.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
-            for (Player player : players) {
-                ((CraftPlayer) player).getHandle().playerConnection.sendPacket(new PacketPlayOutMapChunk(nmsChunk, true, 65535));
+    public synchronized void refresh(Player... players) {
+        MultiBlockChangeWrapper wrapper = new MultiBlockChangeWrapper(new ChunkCoordIntPair(this.chunkX, this.chunkZ));
+        for (Vector change : this.changes) {
+            GhostBlock block = this.getBlock(change.getBlockX(), change.getBlockY(), change.getBlockZ());
+            if (block != null) {
+                wrapper.addBlockChange(new MultiBlockChangeInfo(block.getLocation(this.parent.getWorld()), block.getWrappedBlockData()));
             }
         }
-        else {
-            short[] changeArray = new short[this.changeCount];
-            for (int i = 0; i < this.changes.size(); i++) {
-                Vector changeCoordinates = this.changes.get(i);
-                GhostBlock changedBlock = this.getBlock(changeCoordinates.getBlockX(), changeCoordinates.getBlockY(), changeCoordinates.getBlockZ());
-                if (changedBlock == null) {
-                    continue;
-                }
-                changeArray[i] = (short) ((changedBlock.getX() & 15) << 12 | (changedBlock.getZ() & 15) << 8 | changedBlock.getY());
-            }
-            PacketPlayOutMultiBlockChange multiBlockChange = new PacketPlayOutMultiBlockChange(this.changeCount, changeArray, ((CraftChunk) parent.getWorld().getChunkAt(this.chunkX, this.chunkZ)).getHandle());
-            for (Player player : players) {
-                ((CraftPlayer) player).getHandle().playerConnection.sendPacket(multiBlockChange);
-            }
+        PacketContainer packet = wrapper.build();
+        for (Player player : players) {
+            ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
         }
-        this.changeCount = 0;
         this.changes.clear();
     }
 }

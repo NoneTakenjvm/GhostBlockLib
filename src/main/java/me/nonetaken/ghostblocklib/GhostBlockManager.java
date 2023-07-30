@@ -1,6 +1,5 @@
 package me.nonetaken.ghostblocklib;
 
-import com.comphenix.packetwrapper.WrapperPlayServerBlockChange;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
@@ -8,6 +7,9 @@ import com.comphenix.protocol.events.*;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.util.Vector3i;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import lombok.Getter;
 import me.nonetaken.ghostblocklib.event.BlockPlaceAgainstGhostBlockEvent;
 import me.nonetaken.ghostblocklib.event.GhostBlockBreakEvent;
@@ -19,12 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bukkit.*;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_8_R3.CraftChunk;
-import org.bukkit.craftbukkit.v1_8_R3.block.CraftBlock;
 import org.bukkit.entity.Player;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Field;
@@ -87,12 +84,10 @@ public class GhostBlockManager {
                 }
                 cuboid.setBlock(new GhostBlock(position.getX(), position.getY(), position.getZ()).setType(Material.AIR));
                 // Notify nearby players of the block change
-                WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange();
-                changePacket.setLocation(position);
-                changePacket.setBlockData(WrappedBlockData.createData(Material.AIR));
+                WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(position.getX(), position.getY(), position.getZ()), WrappedBlockData.createData(Material.AIR).getData());
                 for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                     if (onlinePlayer.getWorld() == player.getWorld() && onlinePlayer.getLocation().distance(player.getLocation()) < 64) {
-                        changePacket.sendPacket(onlinePlayer);
+                        PacketEvents.getAPI().getPlayerManager().sendPacket(onlinePlayer, changePacket);
                     }
                 }
                 event.setCancelled(true);
