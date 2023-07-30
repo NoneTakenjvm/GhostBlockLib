@@ -79,7 +79,10 @@ public class GhostBlockManager {
                 }
                 GhostBlockBreakEvent ghostBlockBreakEvent = new GhostBlockBreakEvent(cuboid, block, player);
                 plugin.getServer().getPluginManager().callEvent(ghostBlockBreakEvent);
+                // If the event was cancelled, tell the player the block wasn't broken
                 if (ghostBlockBreakEvent.isCancelled()) {
+                    WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(position.getX(), position.getY(), position.getZ()), block.getWrappedBlockData().getData());
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, changePacket);
                     return;
                 }
                 cuboid.setBlock(new GhostBlock(position.getX(), position.getY(), position.getZ()).setType(Material.AIR));
