@@ -53,7 +53,7 @@ public class GhostBlockManager {
                     return;
                 }
                 GhostBlock block = cuboid.getBlock(position.getX(), position.getY(), position.getZ());
-                if (block == null) {
+                if (block == null || block.getMaterial() == Material.AIR) {
                     return;
                 }
                 // Handle breaking for creative users
@@ -83,6 +83,7 @@ public class GhostBlockManager {
                 if (ghostBlockBreakEvent.isCancelled()) {
                     WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(position.getX(), position.getY(), position.getZ()), block.getWrappedBlockData().getData());
                     PacketEvents.getAPI().getPlayerManager().sendPacket(player, changePacket);
+                    event.setCancelled(true);
                     return;
                 }
                 cuboid.setBlock(new GhostBlock(position.getX(), position.getY(), position.getZ()).setType(Material.AIR));
