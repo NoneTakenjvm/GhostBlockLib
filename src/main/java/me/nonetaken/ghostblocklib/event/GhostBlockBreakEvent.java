@@ -3,7 +3,6 @@ package me.nonetaken.ghostblocklib.event;
 import lombok.Getter;
 import lombok.Setter;
 import me.nonetaken.ghostblocklib.GhostBlock;
-import me.nonetaken.ghostblocklib.GhostBlockChunk;
 import me.nonetaken.ghostblocklib.GhostBlockCuboid;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;

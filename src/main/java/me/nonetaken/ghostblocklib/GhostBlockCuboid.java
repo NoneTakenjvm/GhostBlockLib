@@ -3,11 +3,13 @@ package me.nonetaken.ghostblocklib;
 import lombok.Getter;
 import me.nonetaken.ghostblocklib.util.Cuboid;
 import net.minecraft.server.v1_8_R3.ChunkCoordIntPair;
-import org.bukkit.*;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 /*
@@ -15,23 +17,18 @@ import java.util.function.Consumer;
  * Created: 01/07/2023 at 12:20
  */
 @Getter
-public class GhostBlockCuboid {
+public class GhostBlockCuboid extends Cuboid {
 
-    private final Cuboid cuboid;
-    private final Map<ChunkCoordIntPair, GhostBlockChunk> chunks = new HashMap<>();
+    private final Map<ChunkCoordIntPair, GhostBlockChunk> chunks = new ConcurrentHashMap<>();
 
     public GhostBlockCuboid(World world, Vector min, Vector max) {
-        this(new Cuboid(world, min, max));
-    }
-
-    public GhostBlockCuboid(Cuboid cuboid) {
-        this.cuboid = cuboid;
+        super(world, min, max);
 
         // Find and store all chunks in this cuboid
-        int minX = this.cuboid.getMin().getBlockX();
-        int maxX = this.cuboid.getMax().getBlockX();
-        int minZ = this.cuboid.getMin().getBlockZ();
-        int maxZ = this.cuboid.getMax().getBlockZ();
+        int minX = super.getMin().getBlockX();
+        int maxX = super.getMax().getBlockX();
+        int minZ = super.getMin().getBlockZ();
+        int maxZ = super.getMax().getBlockZ();
         for (int x = minX >> 4; x <= maxX >> 4; x++) {
             for (int z = minZ >> 4; z <= maxZ >> 4; z++) {
                 // Create a new GhostBlockChunk
@@ -42,14 +39,14 @@ public class GhostBlockCuboid {
         }
 
         // Register the GhostBlockCuboid
-        GhostBlockManager.register(this);
+        GhostBlockManager.registerGhostBlockCuboid(this);
     }
 
     /**
      * @return the world this cuboid is in
      */
     public World getWorld() {
-        return this.cuboid.getWorld();
+        return super.getWorld();
     }
 
     /**
@@ -61,7 +58,7 @@ public class GhostBlockCuboid {
      * @return the ghost block chunk
      */
     public GhostBlockChunk getGhostBlockChunk(int x, int z) {
-        return this.chunks.get(new ChunkCoordIntPair(x >> 4, z >> 4));
+        return Objects.requireNonNull(this.chunks.get(new ChunkCoordIntPair(x >> 4, z >> 4)));
     }
 
     /**
@@ -92,7 +89,7 @@ public class GhostBlockCuboid {
      * @param consumer the consumer to handle setting ghost block types
      */
     public synchronized void fill(Consumer<GhostBlock> consumer) {
-        this.setBlocks(this.cuboid.getAllVectors(), consumer);
+        this.setBlocks(super.getAllVectors(), consumer);
     }
 
     /**
@@ -102,9 +99,9 @@ public class GhostBlockCuboid {
      * @param consumer the consumer to set the ghost block type, if required
      */
     public synchronized void setHorizontalLayer(int y, Consumer<GhostBlock> consumer) {
-        Vector min = this.cuboid.getMin().clone().setY(y);
-        Vector max = this.cuboid.getMax().clone().setY(y);
-        Cuboid row = new Cuboid(this.cuboid.getWorld(), min, max);
+        Vector min = super.getMin().clone().setY(y);
+        Vector max = super.getMax().clone().setY(y);
+        Cuboid row = new Cuboid(super.getWorld(), min, max);
         this.setBlocks(row.getAllVectors(), consumer);
     }
 
@@ -115,9 +112,9 @@ public class GhostBlockCuboid {
      * @param consumer the consumer to set the ghost block type, if required
      */
     public synchronized void setVerticalXColumn(int x, Consumer<GhostBlock> consumer) {
-        Vector min = this.cuboid.getMin().clone().setX(x);
-        Vector max = this.cuboid.getMax().clone().setX(x);
-        Cuboid column = new Cuboid(this.cuboid.getWorld(), min, max);
+        Vector min = super.getMin().clone().setX(x);
+        Vector max = super.getMax().clone().setX(x);
+        Cuboid column = new Cuboid(super.getWorld(), min, max);
         this.setBlocks(column.getAllVectors(), consumer);
     }
 
@@ -128,9 +125,9 @@ public class GhostBlockCuboid {
      * @param consumer the consumer to set the ghost block type, if required
      */
     public synchronized void setVerticalZColumn(int z, Consumer<GhostBlock> consumer) {
-        Vector min = this.cuboid.getMin().clone().setZ(z);
-        Vector max = this.cuboid.getMax().clone().setZ(z);
-        Cuboid column = new Cuboid(this.cuboid.getWorld(), min, max);
+        Vector min = super.getMin().clone().setZ(z);
+        Vector max = super.getMax().clone().setZ(z);
+        Cuboid column = new Cuboid(super.getWorld(), min, max);
         this.setBlocks(column.getAllVectors(), consumer);
     }
 
@@ -150,6 +147,8 @@ public class GhostBlockCuboid {
 
     /**
      * Refresh this cuboid for the provided {@link Player}s
+     *
+     * @see GhostBlockChunk#refresh(Player...)
      */
     public synchronized void refresh(Player... players) {
         for (GhostBlockChunk chunk : this.chunks.values()) {
@@ -160,7 +159,7 @@ public class GhostBlockCuboid {
     /**
      * This function must be called if the region is no longer going to be used
      */
-    public void cleanup() {
-        GhostBlockManager.unregister(this);
+    public void unregister() {
+        GhostBlockManager.unregisterGhostBlockCuboid(this);
     }
 }

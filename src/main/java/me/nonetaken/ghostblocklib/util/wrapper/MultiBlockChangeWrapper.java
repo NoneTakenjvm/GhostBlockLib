@@ -1,11 +1,9 @@
-package me.nonetaken.ghostblocklib.util;
+package me.nonetaken.ghostblocklib.util.wrapper;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
-import com.github.retrooper.packetevents.wrapper.PacketWrapper;
-import net.minecraft.server.v1_8_R3.PacketPlayOutMultiBlockChange;
 
 import java.util.ArrayList;
 import java.util.List;

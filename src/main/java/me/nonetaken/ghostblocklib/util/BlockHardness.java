@@ -1,5 +1,6 @@
 package me.nonetaken.ghostblocklib.util;
 
+import lombok.experimental.UtilityClass;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -9,11 +10,15 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.util.Objects;
 
-/*
+/**
  * Project: me.nonetaken.ghostblocklib.util | Author: NoneTaken#0001
  * Created: 17/07/2023 at 20:45
+ *
+ * @Author benwithjamin
  */
+@UtilityClass
 public class BlockHardness {
+
     public static float getHardness(Material material) {
         switch (material) {
             case DIRT:
@@ -249,7 +254,7 @@ public class BlockHardness {
         } else {
             damage /= 100f;
         }
-        // insta break
+        // damage above 1 is an instant break
         if (damage > 1) {
             return 0;
         }

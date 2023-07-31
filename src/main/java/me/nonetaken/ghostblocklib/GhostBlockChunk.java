@@ -4,15 +4,8 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
-import com.comphenix.protocol.wrappers.WrappedBlockData;
 import lombok.Getter;
-import me.nonetaken.ghostblocklib.util.MultiBlockChangeWrapper;
-import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk;
-import net.minecraft.server.v1_8_R3.PacketPlayOutMultiBlockChange;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.craftbukkit.v1_8_R3.CraftChunk;
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
+import me.nonetaken.ghostblocklib.util.wrapper.MultiBlockChangeWrapper;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -66,7 +59,7 @@ public class GhostBlockChunk {
 
     /**
      * Refresh this chunk for the provided {@link Player}s
-     * So all players that should see the changes should be provided
+     * All players that should see the changes should be provided
      *
      * @param players the players to refresh this chunk for
      */

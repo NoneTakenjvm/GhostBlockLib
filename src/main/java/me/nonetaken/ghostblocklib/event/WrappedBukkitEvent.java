@@ -1,5 +1,7 @@
 package me.nonetaken.ghostblocklib.event;
 
+import me.nonetaken.ghostblocklib.GhostBlockLib;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
@@ -16,5 +18,17 @@ public class WrappedBukkitEvent extends Event {
 
     public static HandlerList getHandlerList() {
         return HANDLERS;
+    }
+
+    /**
+     * Call the event on the primary thread
+     */
+    public WrappedBukkitEvent callEvent(boolean forcePrimaryThread) {
+        if (!Bukkit.isPrimaryThread() && forcePrimaryThread) {
+            Bukkit.getScheduler().runTask(GhostBlockLib.getINSTANCE(), () -> callEvent(true));
+        } else {
+            Bukkit.getPluginManager().callEvent(this);
+        }
+        return this;
     }
 }
