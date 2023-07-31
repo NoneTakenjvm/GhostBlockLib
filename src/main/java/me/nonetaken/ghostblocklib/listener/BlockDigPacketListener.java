@@ -70,10 +70,10 @@ public class BlockDigPacketListener extends PacketAdapter {
             }
         }
         GhostBlockBreakEvent ghostBlockBreakEvent = new GhostBlockBreakEvent(cuboid, block, player);
-        ghostBlockBreakEvent.callEvent(true);
+        Bukkit.getPluginManager().callEvent(ghostBlockBreakEvent);
         // If the event was cancelled, tell the player the block wasn't broken
         if (ghostBlockBreakEvent.isCancelled()) {
-            WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(position.getX(), position.getY(), position.getZ()), block.getWrappedBlockData().getData());
+            WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(position.getX(), position.getY(), position.getZ()), block.getBlockRegistryID());
             PacketEvents.getAPI().getPlayerManager().sendPacket(player, changePacket);
             event.setCancelled(true);
             return;

@@ -2,6 +2,9 @@ package me.nonetaken.ghostblocklib.listener;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.*;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.util.Vector3i;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import me.nonetaken.ghostblocklib.GhostBlock;
 import me.nonetaken.ghostblocklib.GhostBlockCuboid;
 import me.nonetaken.ghostblocklib.GhostBlockLib;
@@ -64,7 +67,8 @@ public class BlockPlacePacketListener extends PacketAdapter {
             newLocation.add(1, 0, 0);
         }
         BlockPlaceAgainstGhostBlockEvent placeEvent = new BlockPlaceAgainstGhostBlockEvent(player, cuboid, newLocation, item.getData());
-        placeEvent.callEvent(true);
+        Bukkit.getPluginManager().callEvent(placeEvent);
+        // Handle placing the block and deducting the item
         if (!placeEvent.isCancelled()) {
             newLocation.getBlock().setType(item.getType());
             if (player.getGameMode() == GameMode.CREATIVE) {
@@ -76,6 +80,11 @@ public class BlockPlacePacketListener extends PacketAdapter {
                 item.setAmount(item.getAmount() - 1);
                 player.setItemInHand(item);
             }
+        }
+        // Tell the client the block was not placed
+        else {
+            WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(newLocation.getBlockX(), newLocation.getBlockY(), newLocation.getBlockZ()), 0);
+            PacketEvents.getAPI().getPlayerManager().sendPacket(player, changePacket);
         }
     }
 }

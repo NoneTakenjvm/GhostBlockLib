@@ -19,16 +19,4 @@ public class WrappedBukkitEvent extends Event {
     public static HandlerList getHandlerList() {
         return HANDLERS;
     }
-
-    /**
-     * Call the event on the primary thread
-     */
-    public WrappedBukkitEvent callEvent(boolean forcePrimaryThread) {
-        if (!Bukkit.isPrimaryThread() && forcePrimaryThread) {
-            Bukkit.getScheduler().runTask(GhostBlockLib.getINSTANCE(), () -> callEvent(true));
-        } else {
-            Bukkit.getPluginManager().callEvent(this);
-        }
-        return this;
-    }
 }
