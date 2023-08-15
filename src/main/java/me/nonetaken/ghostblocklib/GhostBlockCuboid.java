@@ -24,7 +24,14 @@ public class GhostBlockCuboid extends Cuboid {
     public GhostBlockCuboid(World world, Vector min, Vector max) {
         super(world, min, max);
 
-        // Find and store all chunks in this cuboid
+        // Find and cache all chunks the mine will contain
+        this.findChunks();
+
+        // Register the GhostBlockCuboid
+        GhostBlockManager.registerGhostBlockCuboid(this);
+    }
+
+    private void findChunks() {
         int minX = super.getMin().getBlockX();
         int maxX = super.getMax().getBlockX();
         int minZ = super.getMin().getBlockZ();
@@ -37,9 +44,26 @@ public class GhostBlockCuboid extends Cuboid {
                 this.chunks.put(new ChunkCoordIntPair(x, z), chunk);
             }
         }
+    }
 
-        // Register the GhostBlockCuboid
-        GhostBlockManager.registerGhostBlockCuboid(this);
+    /**
+     * @see Cuboid#setMin(Vector)
+     */
+    @Override
+    public void setMin(Vector min) {
+        super.setMin(min);
+        super.setAllPoints();
+        this.findChunks();
+    }
+
+    /**
+     * @see Cuboid#setMax(Vector)
+     */
+    @Override
+    public void setMax(Vector max) {
+        super.setMax(max);
+        super.setAllPoints();
+        this.findChunks();
     }
 
     /**

@@ -33,7 +33,7 @@ public class Cuboid {
     /**
      * Repopulate {@link #allVectors} with every point in this cuboid
      */
-    private void setAllPoints() {
+    public void setAllPoints() {
         this.allVectors = new Vector[this.getVolume()];
         int index = 0;
         for (int x = this.min.getBlockX(); x <= this.max.getBlockX(); x++) {
