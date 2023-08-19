@@ -73,7 +73,9 @@ public class GhostBlockChunk {
         }
         PacketContainer packet = wrapper.build();
         for (Player player : players) {
-            ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
+            if (!GhostBlockLib.isIgnoringGhostBlocks(player)) {
+                ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
+            }
         }
         this.changes.clear();
     }

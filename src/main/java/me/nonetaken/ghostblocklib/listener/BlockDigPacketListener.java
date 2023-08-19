@@ -82,7 +82,9 @@ public class BlockDigPacketListener extends PacketAdapter {
         // Notify nearby players of the block change
         WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(position.getX(), position.getY(), position.getZ()), WrappedBlockData.createData(Material.AIR).getData());
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            if (onlinePlayer.getWorld() == player.getWorld() && onlinePlayer.getLocation().distance(player.getLocation()) < 64) {
+            if (onlinePlayer.getWorld() == player.getWorld()  // Player is in the same world
+                    && onlinePlayer.getLocation().distance(player.getLocation()) < 64 // Player is within 64 blocks
+                    && !GhostBlockLib.isIgnoringGhostBlocks(onlinePlayer)) { // Player is not ignoring GhostBlock data
                 PacketEvents.getAPI().getPlayerManager().sendPacket(onlinePlayer, changePacket);
             }
         }

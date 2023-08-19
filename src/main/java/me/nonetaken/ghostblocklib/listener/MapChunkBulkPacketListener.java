@@ -7,6 +7,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import me.nonetaken.ghostblocklib.GhostBlockLib;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunkBulk;
+import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
 
@@ -25,6 +26,10 @@ public class MapChunkBulkPacketListener extends PacketAdapter {
 
     @Override
     public void onPacketSending(PacketEvent event) {
+        Player player = event.getPlayer();
+        if (GhostBlockLib.isIgnoringGhostBlocks(player)) {
+            return;
+        }
         PacketContainer packet = event.getPacket();
         PacketPlayOutMapChunkBulk nmsPacket = (PacketPlayOutMapChunkBulk) packet.getHandle();
         int[] chunkXArray;
