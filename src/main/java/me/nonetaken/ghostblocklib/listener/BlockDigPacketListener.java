@@ -41,7 +41,7 @@ public class BlockDigPacketListener extends PacketAdapter {
         PacketPlayInBlockDig.EnumPlayerDigType digType = packet.getEnumModifier(PacketPlayInBlockDig.EnumPlayerDigType.class, 2).read(0);
         BlockPosition position = positions.read(0);
         GhostBlockCuboid cuboid = getCuboidByLocation(player.getWorld(), position.getX(), position.getZ());
-        if (cuboid == null) {
+        if (cuboid == null || 0 > position.getY()) {
             return;
         }
         GhostBlock block = cuboid.getBlock(position.getX(), position.getY(), position.getZ());
