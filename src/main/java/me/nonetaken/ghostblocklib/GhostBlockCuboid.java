@@ -95,7 +95,8 @@ public class GhostBlockCuboid extends Cuboid {
      * @return the ghost block
      */
     public GhostBlock getBlock(int x, int y, int z) {
-        return this.getGhostBlockChunk(x, z).getBlock(x, y, z);
+        GhostBlockChunk chunk = this.getGhostBlockChunk(x, z);
+        return chunk == null ? null : chunk.getBlock(x, y, z);
     }
 
     /**
