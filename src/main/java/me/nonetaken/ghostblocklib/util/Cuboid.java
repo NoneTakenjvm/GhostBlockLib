@@ -6,21 +6,24 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
+import javax.annotation.Nullable;
+
 /*
  * Project: me.nonetaken.ghostblocklib.util | Author: NoneTaken#0001
  * Created: 01/07/2023 at 12:20
  */
 @Getter
 @Setter
+@SuppressWarnings("unused")
 public class Cuboid {
 
-    private World world;
+    @Nullable private World world;
 
     private Vector min;
     private Vector max;
     private Vector[] allVectors;
 
-    public Cuboid(World world, Vector min, Vector max) {
+    public Cuboid(@Nullable World world, Vector min, Vector max) {
         min.setY(Math.max(0, min.getBlockY())); // avoid negative y values
         max.setY(Math.min(255, max.getBlockY())); // avoid y values above 255
         this.world = world;
@@ -237,7 +240,7 @@ public class Cuboid {
         DOWN,
         DEFAULT,
         ALL,
-        UNKNOWN;
+        UNKNOWN
 
     }
 }

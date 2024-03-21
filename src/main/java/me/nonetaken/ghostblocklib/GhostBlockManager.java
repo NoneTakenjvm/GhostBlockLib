@@ -11,6 +11,7 @@ import me.nonetaken.ghostblocklib.listener.MapChunkPacketListener;
 import me.nonetaken.ghostblocklib.util.wrapper.ChunkMapWrapper;
 import net.minecraft.server.v1_8_R3.ChunkCoordIntPair;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk;
+import org.apache.logging.log4j.core.helpers.Assert;
 import org.bukkit.*;
 
 import java.util.ArrayList;
@@ -74,8 +75,9 @@ public class GhostBlockManager {
      * @return whether the coordinates are in a cuboid or not
      */
     public static GhostBlockCuboid getCuboidByLocation(World world, int x, int z) {
+        Assert.isNotNull(world, "World");
         for (GhostBlockCuboid cuboid : cuboids) {
-            if (!cuboid.getWorld().equals(world)) {
+            if (!world.equals(cuboid.getWorld())) {
                 continue;
             }
             if (cuboid.getChunks().containsKey(new ChunkCoordIntPair(x / 16, z / 16))) {
