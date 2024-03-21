@@ -75,7 +75,6 @@ public class GhostBlockManager {
      * @return whether the coordinates are in a cuboid or not
      */
     public static GhostBlockCuboid getCuboidByLocation(World world, int x, int z) {
-        Assert.isNotNull(world, "World");
         for (GhostBlockCuboid cuboid : cuboids) {
             if (!world.equals(cuboid.getWorld())) {
                 continue;
