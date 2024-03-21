@@ -24,8 +24,9 @@ public class ChunkMapWrapper {
     private static final byte[] SKY_LIGHT_DATA = new byte[2048];
 
     static {
-        Arrays.fill(BLOCK_LIGHT_DATA, (byte) 0); // Block-light we will assume to be 0 (dark)
-        Arrays.fill(SKY_LIGHT_DATA, (byte) 255); // Sky-light we will assume to be 255 (full bright)
+        // Lighting we will set to 0
+        Arrays.fill(BLOCK_LIGHT_DATA, (byte) 0);
+        Arrays.fill(SKY_LIGHT_DATA, (byte) 0);
     }
 
     public ChunkMapWrapper(World.Environment environment, byte[] originalData, int bitmask) {

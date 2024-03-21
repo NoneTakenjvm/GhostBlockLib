@@ -9,6 +9,7 @@ import me.nonetaken.ghostblocklib.GhostBlock;
 import me.nonetaken.ghostblocklib.GhostBlockCuboid;
 import me.nonetaken.ghostblocklib.GhostBlockLib;
 import me.nonetaken.ghostblocklib.event.BlockPlaceAgainstGhostBlockEvent;
+import net.minecraft.server.v1_8_R3.PacketStatusOutServerInfo;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;

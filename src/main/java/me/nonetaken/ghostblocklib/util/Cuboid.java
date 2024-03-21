@@ -77,6 +77,48 @@ public class Cuboid {
         this.setAllPoints();
     }
 
+    private int getUpperX() {
+        return this.getMax().getBlockX();
+    }
+
+    private int getUpperY() {
+        return this.getMax().getBlockY();
+    }
+
+    private int getUpperZ() {
+        return this.getMax().getBlockZ();
+    }
+
+    private int getLowerX() {
+        return this.getMin().getBlockX();
+    }
+
+    private int getLowerY() {
+        return this.getMin().getBlockY();
+    }
+
+    private int getLowerZ() {
+        return this.getMin().getBlockZ();
+    }
+
+    /**
+     * Return the corner points of this cuboid
+     *
+     * @return the cuboid
+     */
+    public Vector[] corners() {
+        Vector[] res = new Vector[8];
+        res[0] = new Vector(this.getLowerX(), this.getLowerY(), this.getLowerZ());
+        res[1] = new Vector(this.getLowerX(), this.getLowerY(), this.getUpperZ());
+        res[2] = new Vector(this.getLowerX(), this.getUpperY(), this.getLowerZ());
+        res[3] = new Vector(this.getLowerX(), this.getUpperY(), this.getUpperZ());
+        res[4] = new Vector(this.getUpperX(), this.getLowerY(), this.getLowerZ());
+        res[5] = new Vector(this.getUpperX(), this.getLowerY(), this.getUpperZ());
+        res[6] = new Vector(this.getUpperX(), this.getLowerY(), this.getLowerZ());
+        res[7] = new Vector(this.getUpperX(), this.getLowerY(), this.getUpperZ());
+        return res;
+    }
+
     /**
      * Return whether this cuboid contains the provided {@link Location}
      *
@@ -123,5 +165,79 @@ public class Cuboid {
      */
     public boolean contains(int x, int z) {
         return x >= this.min.getBlockX() && x <= this.max.getBlockX() && z >= this.min.getBlockZ() && z <= this.max.getBlockZ();
+    }
+
+    /**
+     * Expand this cuboid in the provided direction by the provided amount
+     *
+     * @param dir the direction to expand in
+     * @param amount the amount to expand by
+     */
+    public void expand(CuboidDirection dir, int amount) {
+        switch (dir) {
+            case UNKNOWN: {
+                break;
+            }
+            case NORTH: {
+                this.min.subtract(new Vector(0, 0, amount));
+                break;
+            }
+            case EAST: {
+                this.min.subtract(new Vector(amount, 0, 0));
+                break;
+            }
+            case SOUTH: {
+                this.max.add(new Vector(0, 0, amount));
+                break;
+            }
+            case WEST: {
+                this.max.add(new Vector(amount, 0, 0));
+                break;
+            }
+            case UP: {
+                this.max.add(new Vector(0, amount, 0));
+                break;
+            }
+            case DOWN: {
+                this.min.subtract(new Vector(0, amount, 0));
+                break;
+            }
+            case DEFAULT: {
+                for (CuboidDirection value : CuboidDirection.values()) {
+                    if (value == CuboidDirection.DEFAULT || value == CuboidDirection.UP || value == CuboidDirection.ALL) {
+                        continue;
+                    }
+                    this.expand(value, amount);
+                }
+                break;
+            }
+            case ALL: {
+                for (CuboidDirection value : CuboidDirection.values()) {
+                    if (value == CuboidDirection.DEFAULT || value == CuboidDirection.ALL) {
+                        continue;
+                    }
+                    this.expand(value, amount);
+                }
+                break;
+            }
+            default: {
+                throw new IllegalArgumentException("Invalid direction " + dir);
+            }
+        }
+        this.setAllPoints();
+    }
+
+    public enum CuboidDirection {
+
+        NORTH,
+        EAST,
+        SOUTH,
+        WEST,
+        UP,
+        DOWN,
+        DEFAULT,
+        ALL,
+        UNKNOWN;
+
     }
 }
