@@ -9,10 +9,13 @@ import me.nonetaken.ghostblocklib.listener.BlockPlacePacketListener;
 import me.nonetaken.ghostblocklib.listener.MapChunkBulkPacketListener;
 import me.nonetaken.ghostblocklib.listener.MapChunkPacketListener;
 import me.nonetaken.ghostblocklib.util.wrapper.ChunkMapWrapper;
+import net.minecraft.server.v1_8_R3.BlockPosition;
 import net.minecraft.server.v1_8_R3.ChunkCoordIntPair;
+import net.minecraft.server.v1_8_R3.EnumSkyBlock;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk;
 import org.apache.logging.log4j.core.helpers.Assert;
 import org.bukkit.*;
+import org.bukkit.craftbukkit.v1_8_R3.CraftChunk;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,6 +50,10 @@ public class GhostBlockManager {
             return;
         }
         GhostBlockChunk chunk = cuboid.getGhostBlockChunk(chunkX * 16, chunkZ * 16);
+        if (chunk == null) {
+            return;
+        }
+        //byte skyLightData = getSkyLight(world.getChunkAt(chunkX * 16, chunkZ * 16), new BlockPosition(chunkX * 16, 255, chunkZ * 16));
         ChunkMapWrapper chunkMapWrapper = new ChunkMapWrapper(world.getEnvironment(), chunkMap.a, chunkMap.b);
         // Iterate over stored ghost blocks and edit data
         for (int x = 0; x < chunk.getBlocks().length; x++) {
@@ -85,6 +92,17 @@ public class GhostBlockManager {
         }
         return null;
     }
+
+//    /**
+//     * Return the sky-light level at the provided block position
+//     *
+//     * @param chunk the chunk the block position is in
+//     * @param blockPosition the block position
+//     * @return the sky-light
+//     */
+//    public static byte getSkyLight(Chunk chunk, BlockPosition blockPosition) {
+//        return (byte) ((CraftChunk) chunk).getHandle().getBrightness(EnumSkyBlock.SKY, blockPosition);
+//    }
 
     /**
      * Register the creation of a new {@link GhostBlockCuboid}

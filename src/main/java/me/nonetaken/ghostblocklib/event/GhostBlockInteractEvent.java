@@ -4,22 +4,21 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nonetaken.ghostblocklib.GhostBlock;
-import me.nonetaken.ghostblocklib.GhostBlockCuboid;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
+import org.bukkit.event.block.Action;
 
-/*
+/**
  * Project: me.nonetaken.ghostblocklib.event | Author: NoneTaken#0001
- * Created: 01/07/2023 at 12:57
+ * Created: 23/03/2024 at 13:01
  */
 @Getter
-@Setter
 @RequiredArgsConstructor
-public class GhostBlockBreakEvent extends WrappedBukkitEvent implements Cancellable {
+public class GhostBlockInteractEvent extends WrappedBukkitEvent implements Cancellable {
 
-    private final GhostBlockCuboid ghostBlockCuboid;
-    private final GhostBlock ghostBlock;
     private final Player player;
-    private boolean cancelled;
+    private final GhostBlock ghostBlock;
+    private final Action action;
+    @Setter private boolean cancelled;
 
 }

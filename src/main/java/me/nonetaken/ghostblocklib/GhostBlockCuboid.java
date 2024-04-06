@@ -4,14 +4,16 @@ import lombok.Getter;
 import lombok.Setter;
 import me.nonetaken.ghostblocklib.util.Utils;
 import net.minecraft.server.v1_8_R3.ChunkCoordIntPair;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -21,43 +23,33 @@ import java.util.function.Consumer;
  */
 @Getter
 @SuppressWarnings("unused")
-public class GhostBlockCuboid {
+public class GhostBlockCuboid implements Iterable<Vector> {
 
     private final Map<ChunkCoordIntPair, GhostBlockChunk> chunks = new ConcurrentHashMap<>();
     @Nullable @Setter private World world;
-    private Vector min;
-    private Vector max;
-    private Vector[] allVectors;
+
+    private int x1, y1, z1, x2, y2, z2;
+    private Vector chunkMin, chunkMax;
 
     public GhostBlockCuboid(@Nullable World world, Vector min, Vector max) {
-        min.setY(Math.max(0, min.getBlockY())); // avoid negative y values
-        max.setY(Math.min(255, max.getBlockY())); // avoid y values above 255
         this.world = world;
-        this.min = min;
-        this.max = max;
+        this.x1 = Math.min(min.getBlockX(), max.getBlockX());
+        this.y1 = Math.min(min.getBlockY(), max.getBlockY());
+        this.z1 = Math.min(min.getBlockZ(), max.getBlockZ());
+        this.x2 = Math.max(min.getBlockX(), max.getBlockX());
+        this.y2 = Math.max(min.getBlockY(), max.getBlockY());
+        this.z2 = Math.max(min.getBlockZ(), max.getBlockZ());
 
-        this.setAllPoints();
+        int chunkX = this.x1 - (this.x1 % 16);
+        int chunkZ = this.z1 - (this.z1 % 16);
+        this.chunkMin =  new Vector(chunkX, min.getBlockY(), chunkZ);
 
-        // Find and cache all chunks the mine will contain
-        this.findChunks();
+        chunkX = this.x2 + (16 - (this.x2 % 16));
+        chunkZ = this.z2 + (16 - (this.z2 % 16));
+        this.chunkMax = new Vector(chunkX, max.getBlockY(), chunkZ);
 
         // Register the GhostBlockCuboid
         GhostBlockManager.registerGhostBlockCuboid(this);
-    }
-
-    private void findChunks() {
-        int minX = this.min.getBlockX();
-        int maxX = this.max.getBlockX();
-        int minZ = this.min.getBlockZ();
-        int maxZ = this.max.getBlockZ();
-        for (int x = minX >> 4; x <= maxX >> 4; x++) {
-            for (int z = minZ >> 4; z <= maxZ >> 4; z++) {
-                // Create a new GhostBlockChunk
-                GhostBlockChunk chunk = new GhostBlockChunk(this, x, z);
-                // Add the chunk to the map
-                this.chunks.put(new ChunkCoordIntPair(x, z), chunk);
-            }
-        }
     }
 
     /**
@@ -69,7 +61,13 @@ public class GhostBlockCuboid {
      * @return the ghost block chunk
      */
     public GhostBlockChunk getGhostBlockChunk(int x, int z) {
-        return Objects.requireNonNull(this.chunks.get(new ChunkCoordIntPair(x >> 4, z >> 4)));
+        if (!this.containsChunk(x, z)) {
+            return null;
+        }
+        // Fetch the chunk from the cache, or create a new one if it isn't in the cache
+        ChunkCoordIntPair coords = new ChunkCoordIntPair(x >> 4, z >> 4);
+        return this.chunks.computeIfAbsent(coords,
+                val -> new GhostBlockChunk(this, coords.x, coords.z));
     }
 
     /**
@@ -92,7 +90,10 @@ public class GhostBlockCuboid {
      * @param block the block to place
      */
     public synchronized void setBlock(GhostBlock block) {
-        this.getGhostBlockChunk(block.getX(), block.getZ()).setBlock(block);
+        GhostBlockChunk chunk = this.getGhostBlockChunk(block.getX(), block.getZ());
+        if (chunk != null) {
+            chunk.setBlock(block);
+        }
     }
 
     /**
@@ -101,7 +102,7 @@ public class GhostBlockCuboid {
      * @param consumer the consumer to handle setting ghost block types
      */
     public synchronized void fill(Consumer<GhostBlock> consumer) {
-        this.setBlocks(this.getAllVectors(), consumer);
+        this.setBlocks(this.iterator(), consumer);
     }
 
     /**
@@ -111,9 +112,7 @@ public class GhostBlockCuboid {
      * @param consumer the consumer to set the ghost block type, if required
      */
     public synchronized void setHorizontalLayer(int y, Consumer<GhostBlock> consumer) {
-        Vector min = this.min.clone().setY(y);
-        Vector max = this.max.clone().setY(y);
-        this.setBlocks(Utils.getVectorsBetween(min, max), consumer);
+        this.setBlocks(Utils.getVectorsBetween(new Vector(this.x1, y, this.z1), new Vector(this.x2, y, this.z2)), consumer);
     }
 
     /**
@@ -123,9 +122,7 @@ public class GhostBlockCuboid {
      * @param consumer the consumer to set the ghost block type, if required
      */
     public synchronized void setVerticalXColumn(int x, Consumer<GhostBlock> consumer) {
-        Vector min = this.getMin().clone().setX(x);
-        Vector max = this.getMax().clone().setX(x);
-        this.setBlocks(Utils.getVectorsBetween(min, max), consumer);
+        this.setBlocks(Utils.getVectorsBetween(new Vector(x, this.y1, this.z1), new Vector(x, this.y2, this.z2)), consumer);
     }
 
     /**
@@ -135,9 +132,7 @@ public class GhostBlockCuboid {
      * @param consumer the consumer to set the ghost block type, if required
      */
     public synchronized void setVerticalZColumn(int z, Consumer<GhostBlock> consumer) {
-        Vector min = this.getMin().clone().setZ(z);
-        Vector max = this.getMax().clone().setZ(z);
-        this.setBlocks(Utils.getVectorsBetween(min, max), consumer);
+        this.setBlocks(Utils.getVectorsBetween(new Vector(this.x1, this.y1, z), new Vector(this.x2, this.y2, z)), consumer);
     }
 
     /**
@@ -149,6 +144,22 @@ public class GhostBlockCuboid {
     public synchronized void setBlocks(Vector[] vectors, Consumer<GhostBlock> consumer) {
         for (Vector vector : vectors) {
             GhostBlock block = new GhostBlock(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
+            consumer.accept(block);
+            this.setBlock(block);
+        }
+    }
+
+
+    /**
+     * Set the provided {@link GhostBlock}s in this cuboid
+     *
+     * @param iterator the cuboid iterator to use
+     * @param consumer the consumer to set the ghost block type, if required
+     */
+    public synchronized void setBlocks(GhostBlockCuboidIterator iterator, Consumer<GhostBlock> consumer) {
+        while (iterator.hasNext()) {
+            Vector next = iterator.next();
+            GhostBlock block = new GhostBlock(next.getBlockX(), next.getBlockY(), next.getBlockZ());
             consumer.accept(block);
             this.setBlock(block);
         }
@@ -173,21 +184,14 @@ public class GhostBlockCuboid {
     }
 
     /**
-     * Repopulate {@link #allVectors} with every point in this cuboid
-     */
-    public void setAllPoints() {
-        this.allVectors = Utils.getVectorsBetween(this.min, this.max);
-    }
-
-    /**
      * Return the volume of this cuboid
      *
      * @return the volume
      */
     public int getVolume() {
-        int deltaX = 1 + Math.abs(this.max.getBlockX() - this.min.getBlockX());
-        int deltaY = 1 + Math.abs(this.max.getBlockY() - this.min.getBlockY());
-        int deltaZ = 1 + Math.abs(this.max.getBlockZ() - this.min.getBlockZ());
+        int deltaX = 1 + Math.abs(this.x2 - this.x1);
+        int deltaY = 1 + Math.abs(this.y2 - this.y1);
+        int deltaZ = 1 + Math.abs(this.z2 - this.z1);
         return deltaX * deltaY * deltaZ;
     }
 
@@ -197,9 +201,13 @@ public class GhostBlockCuboid {
      * @param min the new min point
      */
     public void setMin(Vector min) {
-        this.min = min;
-        this.setAllPoints();
-        this.findChunks();
+        this.x1 = min.getBlockX();
+        this.y1 = min.getBlockY();
+        this.z1 = min.getBlockZ();
+
+        int chunkX = min.getBlockX() - min.getBlockX() % 16;
+        int chunkZ = min.getBlockZ() - min.getBlockZ() % 16;
+        this.chunkMin =  new Vector(chunkX, min.getBlockY(), chunkZ);
     }
 
     /**
@@ -208,33 +216,45 @@ public class GhostBlockCuboid {
      * @param max the new max point
      */
     public void setMax(Vector max) {
-        this.max = max;
-        this.setAllPoints();
-        this.findChunks();
+        this.x2 = max.getBlockX();
+        this.y2 = max.getBlockY();
+        this.z2 = max.getBlockZ();
+
+        int chunkX = max.getBlockX() + (16 - (max.getBlockX() % 16));
+        int chunkZ = max.getBlockZ() + (16 - (max.getBlockZ() % 16));
+        this.chunkMax = new Vector(chunkX, max.getBlockY(), chunkZ);
     }
 
     private int getUpperX() {
-        return this.getMax().getBlockX();
+        return this.x2;
     }
 
     private int getUpperY() {
-        return this.getMax().getBlockY();
+        return this.y2;
     }
 
     private int getUpperZ() {
-        return this.getMax().getBlockZ();
+        return this.z2;
     }
 
     private int getLowerX() {
-        return this.getMin().getBlockX();
+        return this.x1;
     }
 
     private int getLowerY() {
-        return this.getMin().getBlockY();
+        return this.y1;
     }
 
     private int getLowerZ() {
-        return this.getMin().getBlockZ();
+        return this.z1;
+    }
+
+    public Vector getMin() {
+        return new Vector(this.getLowerX(), this.getLowerY(), this.getLowerZ());
+    }
+
+    public Vector getMax() {
+        return new Vector(this.getUpperX(), this.getUpperY(), this.getUpperZ());
     }
 
     /**
@@ -244,14 +264,14 @@ public class GhostBlockCuboid {
      */
     public Vector[] corners() {
         Vector[] res = new Vector[8];
-        res[0] = new Vector(this.getLowerX(), this.getLowerY(), this.getLowerZ());
+        res[0] = new Vector(this.getLowerX(), this.getLowerY(), this.getLowerZ()); // lower north west
         res[1] = new Vector(this.getLowerX(), this.getLowerY(), this.getUpperZ());
         res[2] = new Vector(this.getLowerX(), this.getUpperY(), this.getLowerZ());
         res[3] = new Vector(this.getLowerX(), this.getUpperY(), this.getUpperZ());
         res[4] = new Vector(this.getUpperX(), this.getLowerY(), this.getLowerZ());
         res[5] = new Vector(this.getUpperX(), this.getLowerY(), this.getUpperZ());
-        res[6] = new Vector(this.getUpperX(), this.getLowerY(), this.getLowerZ());
-        res[7] = new Vector(this.getUpperX(), this.getLowerY(), this.getUpperZ());
+        res[6] = new Vector(this.getUpperX(), this.getUpperY(), this.getLowerZ());
+        res[7] = new Vector(this.getUpperX(), this.getUpperY(), this.getUpperZ()); // upper south east
         return res;
     }
 
@@ -287,7 +307,7 @@ public class GhostBlockCuboid {
      * @return whether this cuboid contains the provided x, y and z coordinates
      */
     public boolean contains(int x, int y, int z) {
-        return (y >= this.min.getBlockY() && y <= this.max.getBlockY()) && this.contains(x, z);
+        return (y >= this.y1 && y <= this.y2) && this.contains(x, z);
 
     }
 
@@ -300,7 +320,24 @@ public class GhostBlockCuboid {
      * @return whether this cuboid contains the provided x and z coordinates
      */
     public boolean contains(int x, int z) {
-        return x >= this.min.getBlockX() && x <= this.max.getBlockX() && z >= this.min.getBlockZ() && z <= this.max.getBlockZ();
+        return x >= this.x1 && x <= this.x2 && z >= this.z1 && z <= this.z2;
+    }
+
+    /**
+     * Return whether this cuboid is within the chunk at the provided world x and z coordinate
+     *
+     * @param x the world x coordinate
+     * @param z the world z coordinate
+     * @return whether this cuboid is in the chunk
+     */
+    public boolean containsChunk(int x, int z) {
+        if (this.world == null) {
+            return false;
+        }
+        return x >= this.chunkMin.getBlockX()
+                && x <= this.chunkMax.getBlockX()
+                && z >= this.chunkMin.getBlockZ()
+                && z <= this.chunkMax.getBlockZ();
     }
 
     /**
@@ -315,39 +352,27 @@ public class GhostBlockCuboid {
                 break;
             }
             case NORTH: {
-                this.min.subtract(new Vector(0, 0, amount));
-                this.setAllPoints();
-                this.findChunks();
+                this.z1 -= amount;
                 break;
             }
             case EAST: {
-                this.min.subtract(new Vector(amount, 0, 0));
-                this.setAllPoints();
-                this.findChunks();
+                this.x1 -= amount;
                 break;
             }
             case SOUTH: {
-                this.max.add(new Vector(0, 0, amount));
-                this.setAllPoints();
-                this.findChunks();
+                this.z2 += amount;
                 break;
             }
             case WEST: {
-                this.max.add(new Vector(amount, 0, 0));
-                this.setAllPoints();
-                this.findChunks();
+                this.x2 += amount;
                 break;
             }
             case UP: {
-                this.max.add(new Vector(0, amount, 0));
-                this.setAllPoints();
-                this.findChunks();
+                this.y2 += amount;
                 break;
             }
             case DOWN: {
-                this.min.subtract(new Vector(0, amount, 0));
-                this.setAllPoints();
-                this.findChunks();
+                this.y1 -= amount;
                 break;
             }
             case DEFAULT: {
@@ -357,8 +382,6 @@ public class GhostBlockCuboid {
                     }
                     this.expand(value, amount);
                 }
-                this.setAllPoints();
-                this.findChunks();
                 break;
             }
             case ALL: {
@@ -368,14 +391,17 @@ public class GhostBlockCuboid {
                     }
                     this.expand(value, amount);
                 }
-                this.setAllPoints();
-                this.findChunks();
                 break;
             }
             default: {
                 throw new IllegalArgumentException("Invalid direction " + dir);
             }
         }
+    }
+
+    @Override
+    public @NotNull GhostBlockCuboidIterator iterator() {
+        return new GhostBlockCuboidIterator(this);
     }
 
     public enum CuboidDirection {
@@ -389,6 +415,47 @@ public class GhostBlockCuboid {
         DEFAULT,
         ALL,
         UNKNOWN
+    }
 
+    public static class GhostBlockCuboidIterator implements Iterator<Vector> {
+
+        private final int sizeX, sizeY, sizeZ;
+        private final Vector min;
+        private int x, y, z;
+        private int count = 0;
+        private final int volume;
+
+        private GhostBlockCuboidIterator(GhostBlockCuboid cuboid) {
+            this.min = cuboid.getMin().clone();
+            this.sizeX = Math.abs(cuboid.getUpperX() - cuboid.getLowerX()) + 1;
+            this.sizeY = Math.abs(cuboid.getUpperY() - cuboid.getLowerY()) + 1;
+            this.sizeZ = Math.abs(cuboid.getUpperZ() - cuboid.getLowerZ()) + 1;
+            this.x = this.y = this.z = 0;
+            this.volume = this.getVolume();
+        }
+
+        public int getVolume() {
+            return this.sizeX * this.sizeY * this.sizeZ;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return this.count <= this.volume;
+        }
+
+        @Override
+        public Vector next() {
+            if (++this.x >= this.sizeX) {
+                this.x = 0;
+                if (++this.y >= this.sizeY) {
+                    this.y = 0;
+                    if (++this.z >= this.sizeZ) {
+                        this.z = 0;
+                    }
+                }
+            }
+            this.count++;
+            return new Vector(this.min.getBlockX() + this.x, this.min.getBlockY() + this.y, this.min.getBlockZ() + this.z);
+        }
     }
 }

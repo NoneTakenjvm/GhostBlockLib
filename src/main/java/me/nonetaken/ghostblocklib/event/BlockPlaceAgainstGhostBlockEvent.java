@@ -1,6 +1,8 @@
 package me.nonetaken.ghostblocklib.event;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import me.nonetaken.ghostblocklib.GhostBlockCuboid;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -14,28 +16,13 @@ import org.bukkit.material.MaterialData;
  * Called when a player tries to place a block against a {@link me.nonetaken.ghostblocklib.GhostBlock}
  */
 @Getter
+@RequiredArgsConstructor
 public class BlockPlaceAgainstGhostBlockEvent extends WrappedBukkitEvent implements Cancellable {
 
     private final Player player;
     private final GhostBlockCuboid cuboid;
     private final Location location;
     private final MaterialData materialData;
-    private boolean cancelled = false;
+    @Setter private boolean cancelled = false;
 
-    public BlockPlaceAgainstGhostBlockEvent(Player player, GhostBlockCuboid cuboid, Location location, MaterialData materialData) {
-        this.player = player;
-        this.cuboid = cuboid;
-        this.location = location;
-        this.materialData = materialData;
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return this.cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean b) {
-        this.cancelled = b;
-    }
 }

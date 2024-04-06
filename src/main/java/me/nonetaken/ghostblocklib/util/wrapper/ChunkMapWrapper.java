@@ -21,21 +21,19 @@ public class ChunkMapWrapper {
     private int bitmask;
 
     private static final byte[] BLOCK_LIGHT_DATA = new byte[2048];
-    private static final byte[] SKY_LIGHT_DATA = new byte[2048];
+    private final byte[] skyLightData = new byte[2048];
 
     static {
-        // Lighting we will set to 0
         Arrays.fill(BLOCK_LIGHT_DATA, (byte) 0);
-        Arrays.fill(SKY_LIGHT_DATA, (byte) 0);
     }
 
     public ChunkMapWrapper(World.Environment environment, byte[] originalData, int bitmask) {
         this.environment = environment;
         this.bitmask = bitmask;
-        System.arraycopy(originalData, originalData.length - 256, this.biomeData, 0, 256);
 
         // Copy the original data array into the new block data array
         char[] chars = Integer.toBinaryString(bitmask).toCharArray();
+
         // The array must be reversed, so we read from bottom up rather than top down
         ArrayUtils.reverse(chars);
         int counter = 0;
@@ -48,6 +46,12 @@ public class ChunkMapWrapper {
             System.arraycopy(originalData, counter * 8192, this.chunkSections[i].blockData, 0, 8192);
             counter++;
         }
+
+        // Copy biome data
+        System.arraycopy(originalData, originalData.length - 256, this.biomeData, 0, 256);
+
+        // Copy original sky-light data
+        System.arraycopy(originalData, originalData.length - 256 - (this.environment == World.Environment.NORMAL ? 2048 : 0), this.skyLightData, 0, 2048);
     }
 
     /**
@@ -93,7 +97,7 @@ public class ChunkMapWrapper {
         // Add sky-light data for the over-world
         if (this.environment == World.Environment.NORMAL) {
             for (int i = 0; i < populatedSections; i++) {
-                data = ArrayUtils.addAll(data, SKY_LIGHT_DATA);
+                data = ArrayUtils.addAll(data, this.skyLightData);
             }
         }
         // Set bitmask and add biome data
