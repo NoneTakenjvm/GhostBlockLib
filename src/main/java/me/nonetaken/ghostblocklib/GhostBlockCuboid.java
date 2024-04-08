@@ -205,8 +205,8 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         this.y1 = min.getBlockY();
         this.z1 = min.getBlockZ();
 
-        int chunkX = min.getBlockX() - min.getBlockX() % 16;
-        int chunkZ = min.getBlockZ() - min.getBlockZ() % 16;
+        int chunkX = this.x1 - (this.x1 % 16);
+        int chunkZ = this.z1 - (this.z1 % 16);
         this.chunkMin =  new Vector(chunkX, min.getBlockY(), chunkZ);
     }
 
@@ -220,8 +220,8 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         this.y2 = max.getBlockY();
         this.z2 = max.getBlockZ();
 
-        int chunkX = max.getBlockX() + (16 - (max.getBlockX() % 16));
-        int chunkZ = max.getBlockZ() + (16 - (max.getBlockZ() % 16));
+        int chunkX = this.x2 + (16 - (this.x2 % 16));
+        int chunkZ = this.z2 + (16 - (this.z2 % 16));
         this.chunkMax = new Vector(chunkX, max.getBlockY(), chunkZ);
     }
 
@@ -397,6 +397,9 @@ public class GhostBlockCuboid implements Iterable<Vector> {
                 throw new IllegalArgumentException("Invalid direction " + dir);
             }
         }
+        // Update the chunk min and chunk max
+        this.setMin(this.getMin());
+        this.setMax(this.getMax());
     }
 
     @Override
