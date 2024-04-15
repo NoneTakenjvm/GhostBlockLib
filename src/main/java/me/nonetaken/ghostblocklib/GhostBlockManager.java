@@ -86,7 +86,7 @@ public class GhostBlockManager {
             if (!world.equals(cuboid.getWorld())) {
                 continue;
             }
-            if (cuboid.getChunks().containsKey(new ChunkCoordIntPair(x / 16, z / 16))) {
+            if (cuboid.contains(x, z)) {
                 return cuboid;
             }
         }
