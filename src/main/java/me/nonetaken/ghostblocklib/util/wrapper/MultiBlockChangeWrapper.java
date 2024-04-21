@@ -4,6 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
  * Project: me.nonetaken.ghostblocklib.util | Author: NoneTaken#0001
  * Created: 30/07/2023 at 19:48
  */
+@Getter
 public class MultiBlockChangeWrapper {
     private final ChunkCoordIntPair chunkCoordIntPair;
     private final List<MultiBlockChangeInfo> multiBlockChangeInfoList = new ArrayList<>();

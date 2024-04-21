@@ -25,8 +25,8 @@ public class GhostBlockChunk {
     private final GhostBlockCuboid parent;
     private final int chunkX;
     private final int chunkZ;
-    private final GhostBlock[][][] blocks = new GhostBlock[16][256][16]; // x y z
-    private final List<Vector> changes = Collections.synchronizedList(new ArrayList<>());
+    private GhostBlock[][][] blocks = new GhostBlock[16][256][16]; // x y z
+    private List<Vector> changes = Collections.synchronizedList(new ArrayList<>());
 
     protected GhostBlockChunk(GhostBlockCuboid parent, int chunkX, int chunkZ) {
         this.parent = parent;
@@ -59,6 +59,14 @@ public class GhostBlockChunk {
     }
 
     /**
+     * Clear the changes and blocks stored in this chunk
+     */
+    public void cleanup() {
+        this.changes.clear();
+        this.blocks = new GhostBlock[16][256][16];
+    }
+
+    /**
      * Refresh this chunk for the provided {@link Player}s
      * All players that should see the changes should be provided
      *
@@ -78,6 +86,7 @@ public class GhostBlockChunk {
                 ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
             }
         }
+        wrapper.getMultiBlockChangeInfoList().clear();
         this.changes.clear();
     }
 }

@@ -20,6 +20,7 @@ import org.bukkit.craftbukkit.v1_8_R3.CraftChunk;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /*
  * Project: me.nonetaken.ghostblocklib | Author: NoneTaken#0001
@@ -86,23 +87,12 @@ public class GhostBlockManager {
             if (!world.equals(cuboid.getWorld())) {
                 continue;
             }
-            if (cuboid.contains(x, z)) {
+            if (cuboid.containsChunk(x, z)) {
                 return cuboid;
             }
         }
         return null;
     }
-
-//    /**
-//     * Return the sky-light level at the provided block position
-//     *
-//     * @param chunk the chunk the block position is in
-//     * @param blockPosition the block position
-//     * @return the sky-light
-//     */
-//    public static byte getSkyLight(Chunk chunk, BlockPosition blockPosition) {
-//        return (byte) ((CraftChunk) chunk).getHandle().getBrightness(EnumSkyBlock.SKY, blockPosition);
-//    }
 
     /**
      * Register the creation of a new {@link GhostBlockCuboid}
@@ -120,5 +110,10 @@ public class GhostBlockManager {
      */
     public static void unregisterGhostBlockCuboid(GhostBlockCuboid cuboid) {
         cuboids.remove(cuboid);
+        for (Map.Entry<ChunkCoordIntPair, GhostBlockChunk> entry : cuboid.getChunks().entrySet()) {
+            entry.getValue().cleanup();
+            entry.setValue(null); // ensure all these mem heavy mfs get gobbled by the next gc
+        }
+        cuboid.getChunks().clear();
     }
 }
