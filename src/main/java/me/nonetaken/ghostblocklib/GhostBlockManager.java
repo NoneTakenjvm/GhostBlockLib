@@ -112,7 +112,6 @@ public class GhostBlockManager {
         cuboids.remove(cuboid);
         for (Map.Entry<ChunkCoordIntPair, GhostBlockChunk> entry : cuboid.getChunks().entrySet()) {
             entry.getValue().cleanup();
-            entry.setValue(null); // ensure all these mem heavy mfs get gobbled by the next gc
         }
         cuboid.getChunks().clear();
     }
