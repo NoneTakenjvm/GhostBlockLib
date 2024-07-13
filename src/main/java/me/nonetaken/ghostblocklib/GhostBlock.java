@@ -3,6 +3,7 @@ package me.nonetaken.ghostblocklib;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
+import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -66,10 +67,6 @@ public class GhostBlock {
     }
 
     public int getGlobalId() {
-        return StateTypes
-                .getMappedByName(new ResourceLocation("minecraft:"+this.material.name().toLowerCase()))
-                .getStateType()
-                .createBlockState()
-                .getGlobalId();
+        return SpigotConversionUtil.fromBukkitBlockData(this.material.createBlockData()).getGlobalId();
     }
 }
