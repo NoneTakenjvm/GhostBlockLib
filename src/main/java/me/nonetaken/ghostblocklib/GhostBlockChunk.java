@@ -1,12 +1,9 @@
 package me.nonetaken.ghostblocklib;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
-import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.util.Vector3i;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
 import lombok.Getter;
-import me.nonetaken.ghostblocklib.util.wrapper.MultiBlockChangeWrapper;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -73,20 +70,16 @@ public class GhostBlockChunk {
      * @param players the players to refresh this chunk for
      */
     public synchronized void refresh(Player... players) {
-        MultiBlockChangeWrapper wrapper = new MultiBlockChangeWrapper(new ChunkCoordIntPair(this.chunkX, this.chunkZ));
+        List<WrapperPlayServerMultiBlockChange.EncodedBlock> encodedBlocks = new ArrayList<>(this.changes.size());
         for (Vector change : this.changes) {
-            GhostBlock block = this.getBlock(change.getBlockX(), change.getBlockY(), change.getBlockZ());
-            if (block != null) {
-                wrapper.addBlockChange(new MultiBlockChangeInfo(block.getLocation(this.parent.getWorld()), block.getWrappedBlockData()));
-            }
+            encodedBlocks.add(new WrapperPlayServerMultiBlockChange.EncodedBlock(this.getBlock(change.getBlockX(), change.getBlockY(), change.getBlockZ()).getGlobalId(), change.getBlockX(), change.getBlockY(), change.getBlockZ()));
         }
-        PacketContainer packet = wrapper.build();
+        WrapperPlayServerMultiBlockChange wrapper = new WrapperPlayServerMultiBlockChange(new Vector3i(this.chunkX >> 4, 0, this.chunkZ >> 4), true, encodedBlocks.toArray(new WrapperPlayServerMultiBlockChange.EncodedBlock[0]));
         for (Player player : players) {
             if (!GhostBlockLib.isIgnoringGhostBlocks(player)) {
-                ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player, wrapper);
             }
         }
-        wrapper.getMultiBlockChangeInfoList().clear();
         this.changes.clear();
     }
 }

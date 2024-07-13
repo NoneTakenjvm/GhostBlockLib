@@ -3,7 +3,7 @@ version: '${project.version}'
 main: me.nonetaken.ghostblocklib.GhostBlockLib
 authors: [ NoneTaken ]
 description: A library to handle GhostBlock regions
-depend: [ ProtocolLib, packetevents ]
+depend: [ packetevents ]
 commands:
   ignoreghostblocks:
     description: "When enabled, you will not be sent GhostBlocks"

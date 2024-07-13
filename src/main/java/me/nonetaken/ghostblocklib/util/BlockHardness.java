@@ -19,165 +19,80 @@ import java.util.Objects;
 @UtilityClass
 public class BlockHardness {
 
-    public static float getHardness(Material material) {
-        switch (material) {
-            case DIRT:
-            case PACKED_ICE:
-            case ICE:
-            case SLIME_BLOCK:
-            case SOUL_SAND:
-            case SAND:
-                return 0.5f;
-            case STONE:
-            case PRISMARINE:
-                return 1.5f;
-            case COBBLESTONE:
-            case BRICK:
-            case MOSSY_COBBLESTONE:
-            case WOOD:
-            case NETHER_BRICK:
-            case LOG:
-                return 2f;
-            case COAL_ORE:
-            case ENDER_STONE:
-            case QUARTZ_ORE:
-            case EMERALD_ORE:
-            case DIAMOND_ORE:
-            case GOLD_ORE:
-            case REDSTONE_ORE:
-            case LAPIS_ORE:
-            case IRON_ORE:
-                return 3f;
-            case GRAVEL:
-            case SPONGE:
-            case CLAY:
-                return 0.6f;
-            case STAINED_CLAY:
-            case HARD_CLAY:
-                return 1.25f;
-            case COAL_BLOCK:
-            case GOLD_BLOCK:
-            case REDSTONE_BLOCK:
-            case IRON_BLOCK:
-            case EMERALD_BLOCK:
-            case DIAMOND_BLOCK:
-            case LAPIS_BLOCK:
-                return 5f;
-            case SEA_LANTERN:
-            case GLOWSTONE:
-            case STAINED_GLASS:
-            case GLASS:
-                return 0.3f;
-            case NETHERRACK:
-                return 0.4f;
-            case SNOW_BLOCK:
-                return 0.2f;
-            case QUARTZ_BLOCK:
-            case SANDSTONE:
-            case RED_SANDSTONE:
-            case QUARTZ:
-            case WOOL:
-                return 0.8f;
-            case OBSIDIAN:
-                return 50f;
-            default:
-                return 1f;
-        }
-    }
-
     /**
      * Checks if the player is using the best tool for the block
      *
      * @param material The material of the block
-     * @param item The item the player is using
-     *
+     * @param item     The item the player is using
      * @return Whether the player is using the best tool
      */
     public static boolean isBestTool(Material material, Material item) {
+        // TODO: there are many material types missing from here, add as required
         switch (material) {
-            // spade
+            // shovel
             case DIRT:
             case SAND:
-            case GRASS:
+            case GRASS_BLOCK:
             case CLAY:
             case GRAVEL:
-            case SOIL:
             case SOUL_SAND:
             case SNOW_BLOCK:
             case SNOW:
-            case MYCEL:
+            case MYCELIUM:
                 switch (item) {
-                    case WOOD_SPADE:
-                    case STONE_SPADE:
-                    case IRON_SPADE:
-                    case GOLD_SPADE:
-                    case DIAMOND_SPADE:
+                    case WOODEN_SHOVEL:
+                    case STONE_SHOVEL:
+                    case IRON_SHOVEL:
+                    case GOLDEN_SHOVEL:
+                    case DIAMOND_SHOVEL:
                         return true;
                     default:
                         return false;
                 }
-                // axe
-            case WOOD:
-            case LOG:
-            case BIRCH_DOOR:
-            case DARK_OAK_DOOR:
-            case JUNGLE_DOOR:
-            case SPRUCE_DOOR:
-            case TRAP_DOOR:
-            case WOODEN_DOOR:
-            case ACACIA_DOOR:
-            case HUGE_MUSHROOM_1:
-            case HUGE_MUSHROOM_2:
-            case FENCE:
-            case FENCE_GATE:
-            case SPRUCE_WOOD_STAIRS:
-            case ACACIA_STAIRS:
-            case BIRCH_WOOD_STAIRS:
-            case DARK_OAK_STAIRS:
-            case JUNGLE_WOOD_STAIRS:
-            case CHEST:
-            case TRAPPED_CHEST:
-            case SIGN:
-            case WOOD_PLATE:
-            case WORKBENCH:
-            case JUKEBOX:
-            case BOOKSHELF:
-            case WOOD_STEP:
-            case WOOD_DOUBLE_STEP:
-            case SPRUCE_FENCE_GATE:
-            case DARK_OAK_FENCE:
-            case JUNGLE_FENCE:
-            case BIRCH_FENCE:
-            case DARK_OAK_FENCE_GATE:
-            case JUNGLE_FENCE_GATE:
-            case BIRCH_FENCE_GATE:
-            case SPRUCE_FENCE:
-            case BED:
-            case WOOD_STAIRS:
+            // axe
+            case ACACIA_WOOD:
+            case BIRCH_WOOD:
+            case DARK_OAK_WOOD:
+            case JUNGLE_WOOD:
+            case OAK_WOOD:
+            case SPRUCE_WOOD:
+            case OAK_LOG:
+            case SPRUCE_LOG:
+            case BIRCH_LOG:
+            case JUNGLE_LOG:
+            case ACACIA_LOG:
+            case DARK_OAK_LOG:
                 switch (item) {
-                    case WOOD_AXE:
+                    case WOODEN_AXE:
                     case STONE_AXE:
                     case IRON_AXE:
-                    case GOLD_AXE:
+                    case GOLDEN_AXE:
                     case DIAMOND_AXE:
                         return true;
                     default:
                         return false;
                 }
                 // shears
-            case LEAVES:
-            case LEAVES_2:
-            case LONG_GRASS:
-            case WEB:
-            case WOOL:
-                return Objects.requireNonNull(item) == Material.SHEARS;
+            case WHITE_WOOL:
+            case ORANGE_WOOL:
+            case MAGENTA_WOOL:
+            case LIGHT_BLUE_WOOL:
+            case YELLOW_WOOL:
+            case LIME_WOOL:
+            case PINK_WOOL:
+            case GRAY_WOOL:
+            case LIGHT_GRAY_WOOL:
+            case CYAN_WOOL:
+            case PURPLE_WOOL:
+            case BLUE_WOOL:
+            case BROWN_WOOL:
+            case GREEN_WOOL:
+            case RED_WOOL:
+                return item == Material.SHEARS;
             // no best tool
             case SEA_LANTERN:
             case SPONGE:
             case GLASS:
-            case STAINED_GLASS:
-            case STAINED_GLASS_PANE:
-            case THIN_GLASS:
             case GLOWSTONE: {
                 return false;
             }
@@ -190,33 +105,31 @@ public class BlockHardness {
      * Gets the speed of the tool
      *
      * @param item The item to check
-     *
      * @return The speed of the tool
      */
     public static int getToolSpeed(Material item) {
         switch (item) {
-            case WOOD_SPADE:
-            case WOOD_AXE:
-            case WOOD_PICKAXE:
+            case WOODEN_SHOVEL:
+            case WOODEN_AXE:
+            case WOODEN_PICKAXE:
+            case SHEARS:
                 return 2;
-            case STONE_SPADE:
+            case STONE_SHOVEL:
             case STONE_AXE:
             case STONE_PICKAXE:
                 return 4;
-            case IRON_SPADE:
+            case IRON_SHOVEL:
             case IRON_AXE:
             case IRON_PICKAXE:
                 return 6;
-            case DIAMOND_SPADE:
+            case DIAMOND_SHOVEL:
             case DIAMOND_AXE:
             case DIAMOND_PICKAXE:
                 return 8;
-            case GOLD_SPADE:
-            case GOLD_AXE:
-            case GOLD_PICKAXE:
+            case GOLDEN_SHOVEL:
+            case GOLDEN_AXE:
+            case GOLDEN_PICKAXE:
                 return 12;
-            case SHEARS:
-                return 2;
             default:
                 return 1;
         }
@@ -225,22 +138,21 @@ public class BlockHardness {
     /**
      * Gets the length of time it takes to break a block
      *
-     * @param player The player
+     * @param player    The player
      * @param itemStack The item the player is using
-     * @param block The block the player is breaking
-     *
+     * @param block     The block the player is breaking
      * @return The time it takes to break the block 0 if insta break
      */
     public static float getBreakDuration(Player player, ItemStack itemStack, Material block) {
         float speedMultiplier = 1f;
         if (isBestTool(block, itemStack.getType())) {
             speedMultiplier = getToolSpeed(itemStack.getType());
-            if (itemStack.getEnchantmentLevel(Enchantment.DIG_SPEED) > 0) {
-                speedMultiplier += (float) (Math.pow(itemStack.getEnchantmentLevel(Enchantment.DIG_SPEED), 2) + 1);
+            if (itemStack.getEnchantmentLevel(Enchantment.EFFICIENCY) > 0) {
+                speedMultiplier += (float) (Math.pow(itemStack.getEnchantmentLevel(Enchantment.EFFICIENCY), 2) + 1);
             }
         }
         for (PotionEffect potionEffect : player.getActivePotionEffects()) {
-            if (potionEffect.getType().equals(PotionEffectType.FAST_DIGGING)) {
+            if (potionEffect.getType().equals(PotionEffectType.HASTE)) {
                 speedMultiplier *= (float) (0.2 * (potionEffect.getAmplifier() + 1) + 1);
                 break;
             }
@@ -248,7 +160,7 @@ public class BlockHardness {
         if (player.isFlying()) {
             speedMultiplier /= 5f;
         }
-        float damage = speedMultiplier / getHardness(block);
+        float damage = speedMultiplier / block.getHardness();
         if (isBestTool(block, itemStack.getType())) {
             damage /= 30f;
         } else {

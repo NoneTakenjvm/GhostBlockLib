@@ -13,7 +13,7 @@
 
     <description>A library to handle GhostBlock regions</description>
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -55,43 +55,43 @@
 
     <repositories>
         <repository>
-            <id>codemc-snapshots</id>
-            <url>https://repo.codemc.io/repository/maven-snapshots/</url>
+            <id>codemc-releases</id>
+            <url>https://repo.codemc.io/repository/maven-releases/</url>
         </repository>
         <repository>
-            <id>rainnny-repo-serverjars</id>
-            <name>Rainnny's Repository</name>
-            <url>https://maven.rainnny.club/serverjars</url>
+            <id>wild-repo-private</id>
+            <url>https://maven.wildnetwork.net/private</url>
         </repository>
         <repository>
-            <id>dmulloy2-repo</id>
-            <url>https://repo.dmulloy2.net/repository/public/</url>
+            <id>purpur</id>
+            <url>https://repo.purpurmc.org/snapshots</url>
         </repository>
     </repositories>
 
     <dependencies>
+        <!-- Packet Events -->
         <dependency>
-            <groupId>com.github.retrooper.packetevents</groupId>
-            <artifactId>spigot</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
+            <groupId>com.github.retrooper</groupId>
+            <artifactId>packetevents-spigot</artifactId>
+            <version>2.4.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.github</groupId>
-            <artifactId>PaperSpigot</artifactId>
-            <version>1.8.8</version>
+            <groupId>org.purpurmc.purpur</groupId>
+            <artifactId>purpur-api</artifactId>
+            <version>1.20.6-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.comphenix.protocol</groupId>
-            <artifactId>ProtocolLib</artifactId>
-            <version>5.0.0</version>
+            <groupId>org.purpurmc</groupId>
+            <artifactId>purpur</artifactId>
+            <version>1.20.6</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.28</version>
+            <version>1.18.34</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

@@ -1,7 +1,5 @@
 package me.nonetaken.ghostblocklib.event;
 
-import me.nonetaken.ghostblocklib.GhostBlockLib;
-import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 

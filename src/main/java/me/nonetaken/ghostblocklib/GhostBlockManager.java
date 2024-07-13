@@ -1,26 +1,18 @@
 package me.nonetaken.ghostblocklib;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import lombok.Getter;
 import lombok.experimental.UtilityClass;
 import me.nonetaken.ghostblocklib.listener.BlockDigPacketListener;
 import me.nonetaken.ghostblocklib.listener.BlockPlacePacketListener;
 import me.nonetaken.ghostblocklib.listener.MapChunkBulkPacketListener;
 import me.nonetaken.ghostblocklib.listener.MapChunkPacketListener;
-import me.nonetaken.ghostblocklib.util.wrapper.ChunkMapWrapper;
-import net.minecraft.server.v1_8_R3.BlockPosition;
-import net.minecraft.server.v1_8_R3.ChunkCoordIntPair;
-import net.minecraft.server.v1_8_R3.EnumSkyBlock;
-import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk;
-import org.apache.logging.log4j.core.helpers.Assert;
-import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_8_R3.CraftChunk;
+import org.bukkit.World;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /*
  * Project: me.nonetaken.ghostblocklib | Author: NoneTaken#0001
@@ -33,43 +25,54 @@ public class GhostBlockManager {
     private static final List<GhostBlockCuboid> cuboids = Collections.synchronizedList(new ArrayList<>());
 
     public static void init() {
-        ProtocolManager manager = ProtocolLibrary.getProtocolManager();
-        manager.addPacketListener(new BlockDigPacketListener());
-        manager.addPacketListener(new BlockPlacePacketListener());
-        manager.addPacketListener(new MapChunkBulkPacketListener());
-        manager.addPacketListener(new MapChunkPacketListener());
+        new BlockDigPacketListener();
+        new BlockPlacePacketListener();
+        new MapChunkBulkPacketListener();
+        new MapChunkPacketListener();
     }
 
-    public static void handleChunk(World world, int chunkX, int chunkZ, PacketPlayOutMapChunk.ChunkMap chunkMap) {
-        // Ignore packets with a mask of 0
-        if (chunkMap.b == 0) {
+    public static void handleChunk(World world, int chunkX, int chunkZ, BaseChunk chunk) {
+        // Ignore chunks that are empty
+        if (chunk.isEmpty()) {
             return;
         }
         GhostBlockCuboid cuboid = getCuboidByLocation(world, chunkX * 16, chunkZ * 16);
-        // Ignore all packets that are not in a ghost block cuboid
+        // Ignore all chunks that are not in a ghost block cuboid
         if (cuboid == null) {
             return;
         }
-        GhostBlockChunk chunk = cuboid.getGhostBlockChunk(chunkX * 16, chunkZ * 16);
-        if (chunk == null) {
+        GhostBlockChunk ghostChunk = cuboid.getGhostBlockChunk(chunkX * 16, chunkZ * 16);
+        if (ghostChunk == null) {
             return;
         }
-        //byte skyLightData = getSkyLight(world.getChunkAt(chunkX * 16, chunkZ * 16), new BlockPosition(chunkX * 16, 255, chunkZ * 16));
-        ChunkMapWrapper chunkMapWrapper = new ChunkMapWrapper(world.getEnvironment(), chunkMap.a, chunkMap.b);
-        // Iterate over stored ghost blocks and edit data
-        for (int x = 0; x < chunk.getBlocks().length; x++) {
-            for (int y = 0; y < chunk.getBlocks()[x].length; y++) {
-                for (int z = 0; z < chunk.getBlocks()[x][y].length; z++) {
-                    GhostBlock block = chunk.getBlock(x, y, z);
+        for (int x = 0; x < ghostChunk.getBlocks().length; x++) {
+            for (int y = 0; y < ghostChunk.getBlocks()[x].length; y++) {
+                for (int z = 0; z < ghostChunk.getBlocks()[x][y].length; z++) {
+                    GhostBlock block = ghostChunk.getBlock(x, y, z);
                     if (block == null) {
                         continue;
                     }
-                    chunkMapWrapper.setBlock(block.getX(), block.getY(), block.getZ(), block.getBlockRegistryID());
+                    chunk.set(ClientVersion.UNKNOWN, x, y, z, block.getGlobalId());
+
                 }
             }
         }
-        chunkMap.a = chunkMapWrapper.buildChunkMapData();
-        chunkMap.b = chunkMapWrapper.getBitmask();
+//        //byte skyLightData = getSkyLight(world.getChunkAt(chunkX * 16, chunkZ * 16), new BlockPosition(chunkX * 16, 255, chunkZ * 16));
+//        ChunkMapWrapper chunkMapWrapper = new ChunkMapWrapper(world.getEnvironment(), ghostChunk.a, ghostChunk.b);
+//        // Iterate over stored ghost blocks and edit data
+//        for (int x = 0; x < ghostChunk.getBlocks().length; x++) {
+//            for (int y = 0; y < ghostChunk.getBlocks()[x].length; y++) {
+//                for (int z = 0; z < ghostChunk.getBlocks()[x][y].length; z++) {
+//                    GhostBlock block = ghostChunk.getBlock(x, y, z);
+//                    if (block == null) {
+//                        continue;
+//                    }
+//                    chunkMapWrapper.setBlock(block.getX(), block.getY(), block.getZ(), block.getBlockRegistryID());
+//                }
+//            }
+//        }
+//        ghostChunk.a = chunkMapWrapper.buildChunkMapData();
+//        ghostChunk.b = chunkMapWrapper.getBitmask();
     }
 
     /**
@@ -110,9 +113,6 @@ public class GhostBlockManager {
      */
     public static void unregisterGhostBlockCuboid(GhostBlockCuboid cuboid) {
         cuboids.remove(cuboid);
-        for (Map.Entry<ChunkCoordIntPair, GhostBlockChunk> entry : cuboid.getChunks().entrySet()) {
-            entry.getValue().cleanup();
-        }
         cuboid.getChunks().clear();
     }
 }

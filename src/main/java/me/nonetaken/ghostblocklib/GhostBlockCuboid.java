@@ -3,8 +3,6 @@ package me.nonetaken.ghostblocklib;
 import lombok.Getter;
 import lombok.Setter;
 import me.nonetaken.ghostblocklib.util.Utils;
-import net.minecraft.server.v1_8_R3.ChunkCoordIntPair;
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -25,7 +23,12 @@ import java.util.function.Consumer;
 @SuppressWarnings("unused")
 public class GhostBlockCuboid implements Iterable<Vector> {
 
-    private final Map<ChunkCoordIntPair, GhostBlockChunk> chunks = new ConcurrentHashMap<>();
+    /**
+     * Stores all chunks in this cuboid
+     * Key: Chunk X coordinate
+     * Value: Map of Chunk Z coordinate to GhostBlockChunk
+     */
+    private final Map<Integer, Map<Integer, GhostBlockChunk>> chunks = new ConcurrentHashMap<>();
     @Nullable @Setter private World world;
 
     private int x1, y1, z1, x2, y2, z2;
@@ -65,9 +68,8 @@ public class GhostBlockCuboid implements Iterable<Vector> {
             return null;
         }
         // Fetch the chunk from the cache, or create a new one if it isn't in the cache
-        ChunkCoordIntPair coords = new ChunkCoordIntPair(x >> 4, z >> 4);
-        return this.chunks.computeIfAbsent(coords,
-                val -> new GhostBlockChunk(this, coords.x, coords.z));
+        return this.chunks.computeIfAbsent(x >> 4, val -> new ConcurrentHashMap<>())
+                          .computeIfAbsent(z >> 4, val -> new GhostBlockChunk(this, x >> 4, z >> 4));
     }
 
     /**
@@ -171,8 +173,10 @@ public class GhostBlockCuboid implements Iterable<Vector> {
      * @see GhostBlockChunk#refresh(Player...)
      */
     public synchronized void refresh(Player... players) {
-        for (GhostBlockChunk chunk : this.chunks.values()) {
-            chunk.refresh(players);
+        for (Map<Integer, GhostBlockChunk> map : this.chunks.values()) {
+            for (GhostBlockChunk chunk : map.values()) {
+                chunk.refresh(players);
+            }
         }
     }
 
