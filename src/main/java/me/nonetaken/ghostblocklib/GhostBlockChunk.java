@@ -8,9 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /*
  * Project: me.nonetaken.ghostblocklib | Author: NoneTaken#0001
@@ -60,7 +58,7 @@ public class GhostBlockChunk {
      */
     public void cleanup() {
         this.changes.clear();
-        this.blocks = new GhostBlock[16][256][16];
+        this.blocks = new GhostBlock[16][256][16]; // TODO: this is not technically correct for the new world height, fix?
     }
 
     /**
@@ -70,16 +68,30 @@ public class GhostBlockChunk {
      * @param players the players to refresh this chunk for
      */
     public synchronized void refresh(Player... players) {
-        List<WrapperPlayServerMultiBlockChange.EncodedBlock> encodedBlocks = new ArrayList<>(this.changes.size());
+        // K: chunk section Y coordinate, V: encoded block
+        Map<Integer, List<WrapperPlayServerMultiBlockChange.EncodedBlock>> encodedBlocks = new HashMap<>();
         for (Vector change : this.changes) {
-            encodedBlocks.add(new WrapperPlayServerMultiBlockChange.EncodedBlock(this.getBlock(change.getBlockX(), change.getBlockY(), change.getBlockZ()).getGlobalId(), change.getBlockX(), change.getBlockY(), change.getBlockZ()));
+            GhostBlock block = this.getBlock(change.getBlockX(), change.getBlockY(), change.getBlockZ());
+            // If the changed block is null, skip it
+            if (block == null) {
+                continue;
+            }
+            // Add the encoded block to the list of encoded blocks for the chunk section the block is in
+            encodedBlocks.computeIfAbsent(change.getBlockY() >> 4, k -> new ArrayList<>())
+                    .add(new WrapperPlayServerMultiBlockChange.EncodedBlock(block.getGlobalId(), change.getBlockX(), change.getBlockY(), change.getBlockZ()));
         }
-        WrapperPlayServerMultiBlockChange wrapper = new WrapperPlayServerMultiBlockChange(new Vector3i(this.chunkX >> 4, 0, this.chunkZ >> 4), true, encodedBlocks.toArray(new WrapperPlayServerMultiBlockChange.EncodedBlock[0]));
-        for (Player player : players) {
-            if (!GhostBlockLib.isIgnoringGhostBlocks(player)) {
-                PacketEvents.getAPI().getPlayerManager().sendPacket(player, wrapper);
+        // Send the changed chunk sections to the client
+        for (Map.Entry<Integer, List<WrapperPlayServerMultiBlockChange.EncodedBlock>> entry : encodedBlocks.entrySet()) {
+            // Unsure what trustEdges does, but I'm a glass half full guy so true it is
+            WrapperPlayServerMultiBlockChange blockChangePacket = new WrapperPlayServerMultiBlockChange(new Vector3i(this.chunkX, entry.getKey(), this.chunkZ), true, entry.getValue().toArray(new WrapperPlayServerMultiBlockChange.EncodedBlock[0]));
+            for (Player player : players) {
+                // Some players might be ignoring ghost blocks
+                if (!GhostBlockLib.isIgnoringGhostBlocks(player)) {
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, blockChangePacket);
+                }
             }
         }
+        // Clear the change list
         this.changes.clear();
     }
 }

@@ -22,9 +22,7 @@ public class MapChunkPacketListener extends PacketListenerAbstract {
         }
         Player player = (Player) event.getPlayer();
         WrapperPlayServerChunkData packet = new WrapperPlayServerChunkData(event);
-        for (BaseChunk chunk : packet.getColumn().getChunks()) {
-            handleChunk(player.getWorld(), packet.getColumn().getX(), packet.getColumn().getZ(),  chunk);
-        }
+        handleChunk(player.getWorld(), packet.getColumn().getX(), packet.getColumn().getZ(), packet.getColumn());
     }
 
 //    @Override

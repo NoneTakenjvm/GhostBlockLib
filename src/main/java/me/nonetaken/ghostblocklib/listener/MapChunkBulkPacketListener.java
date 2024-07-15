@@ -24,7 +24,7 @@ public class MapChunkBulkPacketListener extends PacketListenerAbstract {
         for (int column = 0; column < packet.getChunks().length; column++) {
             int x = packet.getX()[column];
             int z = packet.getZ()[column];
-            handleChunk(player.getWorld(), x, z, packet.getChunks()[x][z]);
+           //handleChunk(player.getWorld(), x, z, packet.);
         }
     }
 

@@ -24,10 +24,7 @@ public final class GhostBlockLib extends JavaPlugin implements Listener, Command
     @Override
     public void onLoad() {
         PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
-        //Are all listeners read only?
-        PacketEvents.getAPI().getSettings().reEncodeByDefault(false)
-                .checkForUpdates(true);
-        PacketEvents.getAPI().load();
+        PacketEvents.getAPI().getSettings().reEncodeByDefault(false).checkForUpdates(true);
     }
 
     @Override
@@ -37,6 +34,11 @@ public final class GhostBlockLib extends JavaPlugin implements Listener, Command
         getCommand("ignoreghostblocks").setExecutor(this);
         PacketEvents.getAPI().init();
         GhostBlockManager.init();
+
+        new TestGhostBlocksCommand(this);
+
+        // Load the API last
+        PacketEvents.getAPI().load();
     }
 
     @Override
