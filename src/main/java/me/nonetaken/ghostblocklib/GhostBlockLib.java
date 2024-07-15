@@ -32,13 +32,13 @@ public final class GhostBlockLib extends JavaPlugin implements Listener, Command
         INSTANCE = this;
         getServer().getPluginManager().registerEvents(this, this);
         getCommand("ignoreghostblocks").setExecutor(this);
-        PacketEvents.getAPI().init();
+        PacketEvents.getAPI().load();
         GhostBlockManager.init();
 
         new TestGhostBlocksCommand(this);
 
         // Load the API last
-        PacketEvents.getAPI().load();
+        PacketEvents.getAPI().init();
     }
 
     @Override

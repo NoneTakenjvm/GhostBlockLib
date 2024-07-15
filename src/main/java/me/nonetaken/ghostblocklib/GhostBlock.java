@@ -1,6 +1,7 @@
 package me.nonetaken.ghostblocklib;
 
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
@@ -68,5 +69,9 @@ public class GhostBlock {
 
     public int getGlobalId() {
         return SpigotConversionUtil.fromBukkitBlockData(this.material.createBlockData()).getGlobalId();
+    }
+
+    public WrappedBlockState getBlockState() {
+        return SpigotConversionUtil.fromBukkitBlockData(this.material.createBlockData());
     }
 }

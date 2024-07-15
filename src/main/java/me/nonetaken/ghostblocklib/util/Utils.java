@@ -12,22 +12,6 @@ import org.bukkit.util.Vector;
 public class Utils {
 
     /**
-     * Remove all subsequent characters from the beginning of a string
-     *
-     * @param input the string to remove characters from
-     * @param character the character to remove
-     *
-     * @return the string, with the provided occurence of character removed from the beginning of it
-     */
-    public static String removeBeginningCharacters(String input, char character) {
-        int index = 0;
-        while (index < input.length() && input.charAt(index) == character) {
-            index++;
-        }
-        return input.substring(index);
-    }
-
-    /**
      * Create an array of all vector points between the provided minimum and maximum points
      *
      * @param min the min point

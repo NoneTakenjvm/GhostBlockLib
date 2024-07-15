@@ -338,7 +338,7 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         if (this.world == null) {
             return false;
         }
-        return x >= this.chunkMin.getBlockX()
+        return     x >= this.chunkMin.getBlockX()
                 && x <= this.chunkMax.getBlockX()
                 && z >= this.chunkMin.getBlockZ()
                 && z <= this.chunkMax.getBlockZ();

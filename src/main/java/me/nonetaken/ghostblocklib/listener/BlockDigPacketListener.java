@@ -18,6 +18,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import static me.nonetaken.ghostblocklib.GhostBlockManager.getCuboidByLocation;
 
@@ -64,83 +65,31 @@ public class BlockDigPacketListener extends PacketListenerAbstract {
                 event.setCancelled(true);
             }
         }
-        GhostBlockBreakEvent ghostBlockBreakEvent = new GhostBlockBreakEvent(cuboid, block, player);
-        Bukkit.getPluginManager().callEvent(ghostBlockBreakEvent);
-        // If the event was cancelled, tell the player the block wasn't broken
-        if (ghostBlockBreakEvent.isCancelled()) {
-            WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(vector.getX(), vector.getY(), vector.getZ()), block.getGlobalId());
-            PacketEvents.getAPI().getPlayerManager().sendPacket(player, changePacket);
-            event.setCancelled(true);
-            return;
-        }
-        cuboid.setBlock(new GhostBlock(vector.getX(), vector.getY(), vector.getZ()).setType(Material.AIR));
-        // Notify nearby players of the block change
-        WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(vector.getX(), vector.getY(), vector.getZ()), 0);
-        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            if (onlinePlayer.getWorld() == player.getWorld()  // Player is in the same world
-                    && onlinePlayer.getLocation().distance(player.getLocation()) < 64 // Player is within 64 blocks
-                    && !GhostBlockLib.isIgnoringGhostBlocks(onlinePlayer)) { // Player is not ignoring GhostBlock data
-                PacketEvents.getAPI().getPlayerManager().sendPacket(onlinePlayer, changePacket);
+        // Event must be called synchronously
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                GhostBlockBreakEvent ghostBlockBreakEvent = new GhostBlockBreakEvent(cuboid, block, player);
+                Bukkit.getPluginManager().callEvent(ghostBlockBreakEvent);
+                // If the event was cancelled, tell the player the block wasn't broken
+                if (ghostBlockBreakEvent.isCancelled()) {
+                    WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(vector.getX(), vector.getY(), vector.getZ()), block.getGlobalId());
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, changePacket);
+                    event.setCancelled(true);
+                    return;
+                }
+                cuboid.setBlock(new GhostBlock(vector.getX(), vector.getY(), vector.getZ()).setType(Material.AIR));
+                // Notify nearby players of the block change
+                WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(vector.getX(), vector.getY(), vector.getZ()), 0);
+                for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                    if (onlinePlayer.getWorld() == player.getWorld()  // Player is in the same world
+                            && onlinePlayer.getLocation().distance(player.getLocation()) < 64 // Player is within 64 blocks
+                            && !GhostBlockLib.isIgnoringGhostBlocks(onlinePlayer)) { // Player is not ignoring GhostBlock data
+                        PacketEvents.getAPI().getPlayerManager().sendPacket(onlinePlayer, changePacket);
+                    }
+                }
             }
-        }
+        }.runTask(GhostBlockLib.getINSTANCE());
         event.setCancelled(true);
     }
-
-//    @Override
-//    public void onPacketReceiving(PacketEvent event) {
-//        PacketContainer packet = event.getPacket();
-//        Player player = event.getPlayer();
-//        StructureModifier<BlockPosition> positions = packet.getBlockPositionModifier();
-//        PacketPlayInBlockDig.EnumPlayerDigType digType = packet.getEnumModifier(PacketPlayInBlockDig.EnumPlayerDigType.class, 2).read(0);
-//        BlockPosition position = positions.read(0);
-//        GhostBlockCuboid cuboid = getCuboidByLocation(player.getWorld(), position.getX(), position.getZ());
-//        if (cuboid == null || 0 > position.getY()) {
-//            return;
-//        }
-//        GhostBlock block = cuboid.getBlock(position.getX(), position.getY(), position.getZ());
-//        if (block == null || block.getMaterial() == Material.AIR) {
-//            return;
-//        }
-//        // Handle breaking for creative users
-//        if (player.getGameMode() == GameMode.CREATIVE) {
-//            if (digType != PacketPlayInBlockDig.EnumPlayerDigType.START_DESTROY_BLOCK) {
-//                event.setCancelled(true);
-//                return;
-//            }
-//            // Handle block breaking for survival users
-//        } else if (player.getGameMode() == GameMode.SURVIVAL) {
-//            if (digType == PacketPlayInBlockDig.EnumPlayerDigType.ABORT_DESTROY_BLOCK) {
-//                event.setCancelled(true);
-//                return;
-//            }
-//            boolean instant = BlockHardness.canInstantBreak(player, player.getItemInHand(), block.getMaterial());
-//            if (instant && digType != PacketPlayInBlockDig.EnumPlayerDigType.START_DESTROY_BLOCK) {
-//                event.setCancelled(true);
-//                return;
-//            } else if (!instant && digType != PacketPlayInBlockDig.EnumPlayerDigType.STOP_DESTROY_BLOCK) {
-//                event.setCancelled(true);
-//                return;
-//            }
-//        }
-//        GhostBlockBreakEvent ghostBlockBreakEvent = new GhostBlockBreakEvent(cuboid, block, player);
-//        Bukkit.getPluginManager().callEvent(ghostBlockBreakEvent);
-//        // If the event was cancelled, tell the player the block wasn't broken
-//        if (ghostBlockBreakEvent.isCancelled()) {
-//            WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(position.getX(), position.getY(), position.getZ()), block.getBlockRegistryID());
-//            PacketEvents.getAPI().getPlayerManager().sendPacket(player, changePacket);
-//            event.setCancelled(true);
-//            return;
-//        }
-//        cuboid.setBlock(new GhostBlock(position.getX(), position.getY(), position.getZ()).setType(Material.AIR));
-//        // Notify nearby players of the block change
-//        WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(position.getX(), position.getY(), position.getZ()), WrappedBlockData.createData(Material.AIR).getData());
-//        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-//            if (onlinePlayer.getWorld() == player.getWorld()  // Player is in the same world
-//                    && onlinePlayer.getLocation().distance(player.getLocation()) < 64 // Player is within 64 blocks
-//                    && !GhostBlockLib.isIgnoringGhostBlocks(onlinePlayer)) { // Player is not ignoring GhostBlock data
-//                PacketEvents.getAPI().getPlayerManager().sendPacket(onlinePlayer, changePacket);
-//            }
-//        }
-//        event.setCancelled(true);
-//    }
 }

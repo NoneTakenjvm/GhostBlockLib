@@ -22,7 +22,10 @@ public class TestGhostBlocksCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         Player player = (Player) sender;
-        GhostBlockCuboid cuboid = new GhostBlockCuboid(player.getWorld(), player.getLocation().subtract(17, 17, 17).toVector(), player.getLocation().add(1, 17, 17).toVector());
+        if (!player.isOp()) {
+            return false;
+        }
+        GhostBlockCuboid cuboid = new GhostBlockCuboid(player.getWorld(), player.getLocation().subtract(17, 17, 17).toVector(), player.getLocation().add(17, 0, 17).toVector());
         GhostBlockManager.registerGhostBlockCuboid(cuboid);
         Bukkit.broadcastMessage("registered");
         cuboid.setBlocks(cuboid.iterator(), block -> {

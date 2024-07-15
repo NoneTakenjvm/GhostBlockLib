@@ -20,7 +20,7 @@ public class GhostBlockChunk {
     private final GhostBlockCuboid parent;
     private final int chunkX;
     private final int chunkZ;
-    private GhostBlock[][][] blocks = new GhostBlock[16][256][16]; // x y z
+    private GhostBlock[][][] blocks = new GhostBlock[16][384][16]; // x y z
     private List<Vector> changes = Collections.synchronizedList(new ArrayList<>());
 
     protected GhostBlockChunk(GhostBlockCuboid parent, int chunkX, int chunkZ) {
@@ -39,7 +39,8 @@ public class GhostBlockChunk {
      */
     @Nullable
     public GhostBlock getBlock(int x, int y, int z) {
-        return this.blocks[Math.abs(x % 16)][y][Math.abs(z % 16)];
+        // Add 64 onto the y coordinate, so we can support negative y levels
+        return this.blocks[Math.abs(x % 16)][y + 64][Math.abs(z % 16)];
     }
 
     /**
@@ -48,7 +49,8 @@ public class GhostBlockChunk {
      * @param block the ghost block to set
      */
     public synchronized void setBlock(GhostBlock block) {
-        this.blocks[Math.floorMod(block.getX(), 16)][block.getY()][Math.floorMod(block.getZ(), 16)] = block;
+        // Add 64 onto the y coordinate, so we can support negative y levels
+        this.blocks[Math.floorMod(block.getX(), 16)][block.getY() + 64][Math.floorMod(block.getZ(), 16)] = block;
         this.changes.add(block.getVector());
 
     }
@@ -58,7 +60,7 @@ public class GhostBlockChunk {
      */
     public void cleanup() {
         this.changes.clear();
-        this.blocks = new GhostBlock[16][256][16]; // TODO: this is not technically correct for the new world height, fix?
+        this.blocks = new GhostBlock[16][384][16];
     }
 
     /**
