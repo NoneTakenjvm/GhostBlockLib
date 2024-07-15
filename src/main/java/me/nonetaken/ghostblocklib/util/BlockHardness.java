@@ -8,7 +8,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.EnumSet;
 import java.util.Objects;
+
+import static org.bukkit.Material.*;
 
 /**
  * Project: me.nonetaken.ghostblocklib.util | Author: NoneTaken#0001
@@ -19,6 +22,40 @@ import java.util.Objects;
 @UtilityClass
 public class BlockHardness {
 
+    private static final EnumSet<Material> SHOVEL_MATERIALS = EnumSet.of(
+            DIRT,
+            SAND,
+            GRASS_BLOCK,
+            CLAY,
+            GRAVEL,
+            SOUL_SAND,
+            SNOW_BLOCK,
+            SNOW,
+            MYCELIUM
+    );
+
+    private static final EnumSet<Material> AXE_MATERIALS = EnumSet.of(
+            ACACIA_WOOD,
+            BIRCH_WOOD,
+            DARK_OAK_WOOD,
+            JUNGLE_WOOD,
+            OAK_WOOD,
+            SPRUCE_WOOD,
+            OAK_LOG,
+            SPRUCE_LOG,
+            BIRCH_LOG,
+            JUNGLE_LOG,
+            ACACIA_LOG,
+            DARK_OAK_LOG
+    );
+
+    private static final EnumSet<Material> NO_BEST_TOOL_MATERIALS = EnumSet.of(
+            SEA_LANTERN,
+            SPONGE,
+            GLASS,
+            GLOWSTONE
+    );
+
     /**
      * Checks if the player is using the best tool for the block
      *
@@ -27,78 +64,19 @@ public class BlockHardness {
      * @return Whether the player is using the best tool
      */
     public static boolean isBestTool(Material material, Material item) {
-        // TODO: there are many material types missing from here, add as required
-        switch (material) {
-            // shovel
-            case DIRT:
-            case SAND:
-            case GRASS_BLOCK:
-            case CLAY:
-            case GRAVEL:
-            case SOUL_SAND:
-            case SNOW_BLOCK:
-            case SNOW:
-            case MYCELIUM:
-                switch (item) {
-                    case WOODEN_SHOVEL:
-                    case STONE_SHOVEL:
-                    case IRON_SHOVEL:
-                    case GOLDEN_SHOVEL:
-                    case DIAMOND_SHOVEL:
-                        return true;
-                    default:
-                        return false;
-                }
-            // axe
-            case ACACIA_WOOD:
-            case BIRCH_WOOD:
-            case DARK_OAK_WOOD:
-            case JUNGLE_WOOD:
-            case OAK_WOOD:
-            case SPRUCE_WOOD:
-            case OAK_LOG:
-            case SPRUCE_LOG:
-            case BIRCH_LOG:
-            case JUNGLE_LOG:
-            case ACACIA_LOG:
-            case DARK_OAK_LOG:
-                switch (item) {
-                    case WOODEN_AXE:
-                    case STONE_AXE:
-                    case IRON_AXE:
-                    case GOLDEN_AXE:
-                    case DIAMOND_AXE:
-                        return true;
-                    default:
-                        return false;
-                }
-                // shears
-            case WHITE_WOOL:
-            case ORANGE_WOOL:
-            case MAGENTA_WOOL:
-            case LIGHT_BLUE_WOOL:
-            case YELLOW_WOOL:
-            case LIME_WOOL:
-            case PINK_WOOL:
-            case GRAY_WOOL:
-            case LIGHT_GRAY_WOOL:
-            case CYAN_WOOL:
-            case PURPLE_WOOL:
-            case BLUE_WOOL:
-            case BROWN_WOOL:
-            case GREEN_WOOL:
-            case RED_WOOL:
-                return item == Material.SHEARS;
-            // no best tool
-            case SEA_LANTERN:
-            case SPONGE:
-            case GLASS:
-            case GLOWSTONE: {
-                return false;
-            }
+        if (SHOVEL_MATERIALS.contains(material)) {
+            return switch (item) {
+                case WOODEN_SHOVEL, STONE_SHOVEL, IRON_SHOVEL, GOLDEN_SHOVEL, DIAMOND_SHOVEL -> true;
+                default -> false;
+            };
         }
-        // default for pickaxe true // may need changing
-        return true;
+        else if (AXE_MATERIALS.contains(material)) {
+            return switch (item) {
+                case WOODEN_AXE, STONE_AXE, IRON_AXE, GOLDEN_AXE, DIAMOND_AXE -> true;
+                default -> false;
+            };
+        }
+        return !NO_BEST_TOOL_MATERIALS.contains(material);
     }
 
     /**
@@ -108,31 +86,22 @@ public class BlockHardness {
      * @return The speed of the tool
      */
     public static int getToolSpeed(Material item) {
-        switch (item) {
-            case WOODEN_SHOVEL:
-            case WOODEN_AXE:
-            case WOODEN_PICKAXE:
-            case SHEARS:
-                return 2;
-            case STONE_SHOVEL:
-            case STONE_AXE:
-            case STONE_PICKAXE:
-                return 4;
-            case IRON_SHOVEL:
-            case IRON_AXE:
-            case IRON_PICKAXE:
-                return 6;
-            case DIAMOND_SHOVEL:
-            case DIAMOND_AXE:
-            case DIAMOND_PICKAXE:
-                return 8;
-            case GOLDEN_SHOVEL:
-            case GOLDEN_AXE:
-            case GOLDEN_PICKAXE:
-                return 12;
-            default:
-                return 1;
+        if (item == null) {
+            return 1;
         }
+        else if (item == WOODEN_SHOVEL || item == WOODEN_AXE || item == WOODEN_PICKAXE || item == SHEARS) {
+            return 2;
+        }
+        else if (item == GOLDEN_SHOVEL || item == GOLDEN_AXE || item == GOLDEN_PICKAXE || item == STONE_SHOVEL || item == STONE_AXE || item == STONE_PICKAXE) {
+            return 4;
+        }
+        else if (item == IRON_SHOVEL || item == IRON_AXE || item == IRON_PICKAXE) {
+            return 6;
+        }
+        else if (item == DIAMOND_SHOVEL || item == DIAMOND_AXE || item == DIAMOND_PICKAXE) {
+            return 8;
+        }
+        return 1;
     }
 
     /**

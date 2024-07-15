@@ -24,6 +24,7 @@ public class GhostBlock {
     private int y; // world y coordinate
     private int z; // world z coordinate
     private Material material = Material.AIR;
+    private WrappedBlockState blockState;
 
     public GhostBlock(Vector vector) {
         this(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
@@ -44,6 +45,7 @@ public class GhostBlock {
      */
     public GhostBlock setType(Material material) {
         this.material = material;
+        this.blockState = SpigotConversionUtil.fromBukkitBlockData(this.material.createBlockData());
         return this;
     }
 
@@ -68,10 +70,10 @@ public class GhostBlock {
     }
 
     public int getGlobalId() {
-        return SpigotConversionUtil.fromBukkitBlockData(this.material.createBlockData()).getGlobalId();
+        return this.blockState.getGlobalId();
     }
 
     public WrappedBlockState getBlockState() {
-        return SpigotConversionUtil.fromBukkitBlockData(this.material.createBlockData());
+        return this.blockState;
     }
 }
