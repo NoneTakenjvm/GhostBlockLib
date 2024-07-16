@@ -9,12 +9,14 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import me.nonetaken.ghostblocklib.GhostBlock;
 import me.nonetaken.ghostblocklib.GhostBlockCuboid;
+import me.nonetaken.ghostblocklib.GhostBlockLib;
 import me.nonetaken.ghostblocklib.event.BlockPlaceAgainstGhostBlockEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import static me.nonetaken.ghostblocklib.GhostBlockManager.getCuboidByLocation;
 
@@ -63,25 +65,31 @@ public class BlockPlacePacketListener extends PacketListenerAbstract {
         } else if (face == 5) {
             newLocation.add(1, 0, 0);
         }
-        BlockPlaceAgainstGhostBlockEvent placeEvent = new BlockPlaceAgainstGhostBlockEvent(player, cuboid, newLocation, item.getData());
-        Bukkit.getPluginManager().callEvent(placeEvent);
-        // Handle placing the block and deducting the item
-        if (!placeEvent.isCancelled()) {
-            newLocation.getBlock().setType(item.getType());
-            if (player.getGameMode() == GameMode.CREATIVE) {
-                return;
+        // Event must be called synchronously
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                BlockPlaceAgainstGhostBlockEvent placeEvent = new BlockPlaceAgainstGhostBlockEvent(player, cuboid, newLocation, item.getData());
+                Bukkit.getPluginManager().callEvent(placeEvent);
+                // Handle placing the block and deducting the item
+                if (!placeEvent.isCancelled()) {
+                    newLocation.getBlock().setType(item.getType());
+                    if (player.getGameMode() == GameMode.CREATIVE) {
+                        return;
+                    }
+                    if (item.getAmount() == 0) {
+                        player.getInventory().setItemInMainHand(null);
+                    } else {
+                        item.setAmount(item.getAmount() - 1);
+                        player.getInventory().setItemInMainHand(item);
+                    }
+                }
+                // Tell the client the block was not placed
+                else {
+                    WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(newLocation.getBlockX(), newLocation.getBlockY(), newLocation.getBlockZ()), 0);
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, changePacket);
+                }
             }
-            if (item.getAmount() == 0) {
-                player.getInventory().setItemInMainHand(null);
-            } else {
-                item.setAmount(item.getAmount() - 1);
-                player.getInventory().setItemInMainHand(item);
-            }
-        }
-        // Tell the client the block was not placed
-        else {
-            WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(newLocation.getBlockX(), newLocation.getBlockY(), newLocation.getBlockZ()), 0);
-            PacketEvents.getAPI().getPlayerManager().sendPacket(player, changePacket);
-        }
+        }.runTask(GhostBlockLib.getINSTANCE());
     }
 }
