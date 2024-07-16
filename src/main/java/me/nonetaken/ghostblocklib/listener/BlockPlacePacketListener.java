@@ -42,11 +42,11 @@ public class BlockPlacePacketListener extends PacketListenerAbstract {
         if (block == null) {
             return;
         }
+        event.setCancelled(true);
         ItemStack item = player.getInventory().getItemInMainHand();
         if (item.getType().isAir()) {
             return;
         }
-        event.setCancelled(true);
         if (!item.getType().isBlock() && !item.getType().isSolid()) {
             return;
         }
@@ -69,7 +69,7 @@ public class BlockPlacePacketListener extends PacketListenerAbstract {
         new BukkitRunnable() {
             @Override
             public void run() {
-                BlockPlaceAgainstGhostBlockEvent placeEvent = new BlockPlaceAgainstGhostBlockEvent(player, cuboid, newLocation, item.getData());
+                BlockPlaceAgainstGhostBlockEvent placeEvent = new BlockPlaceAgainstGhostBlockEvent(player, cuboid, newLocation, item.getType());
                 Bukkit.getPluginManager().callEvent(placeEvent);
                 // Handle placing the block and deducting the item
                 if (!placeEvent.isCancelled()) {

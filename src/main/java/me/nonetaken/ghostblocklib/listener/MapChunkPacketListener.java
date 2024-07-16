@@ -19,7 +19,6 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import static me.nonetaken.ghostblocklib.GhostBlockManager.getCuboidByLocation;
-import static me.nonetaken.ghostblocklib.GhostBlockManager.handleChunk;
 
 /**
  * Project: me.nonetaken.ghostblocklib.listener | Author: NoneTaken#0001

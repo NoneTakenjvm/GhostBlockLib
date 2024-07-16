@@ -2,11 +2,14 @@ package me.nonetaken.ghostblocklib;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.chunk.Column;
 import lombok.Getter;
 import me.nonetaken.ghostblocklib.listener.BlockDigPacketListener;
 import me.nonetaken.ghostblocklib.listener.BlockPlacePacketListener;
 import me.nonetaken.ghostblocklib.listener.MapChunkPacketListener;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.util.ArrayList;
@@ -28,55 +31,6 @@ public class GhostBlockManager extends PacketListenerAbstract {
                 new BlockPlacePacketListener(),
                 new MapChunkPacketListener()
         );
-    }
-
-    public static Column handleChunk(World world, int chunkX, int chunkZ, Column chunk) {
-//        GhostBlockCuboid cuboid = getCuboidByLocation(world, chunkX * 16, chunkZ * 16);
-//        // Ignore all chunks that are not in a ghost block cuboid
-//        if (cuboid == null) {
-//            return;
-//        }
-//        GhostBlockChunk ghostChunk = cuboid.getGhostBlockChunk(chunkX * 16, chunkZ * 16);
-//        if (ghostChunk == null) {
-//            return;
-//        }
-//        for (int i = 0; i < chunk.getChunks().length; i++) {
-//            BaseChunk chunkSection = chunk.getChunks()[i];
-//            WrappedBlockState state = SpigotConversionUtil.fromBukkitBlockData(switch (i) {
-//                case 0 -> Material.STONE.createBlockData();
-//                case 1 -> Material.DIRT.createBlockData();
-//                case 2 -> Material.GRASS_BLOCK.createBlockData();
-//                case 3 -> Material.COBBLESTONE.createBlockData();
-//                case 4 -> Material.OAK_PLANKS.createBlockData();
-//                case 5 -> Material.BEDROCK.createBlockData();
-//                case 6 -> Material.SAND.createBlockData();
-//                case 7 -> Material.GRAVEL.createBlockData();
-//                case 8 -> Material.GOLD_BLOCK.createBlockData();
-//                case 9 -> Material.IRON_BLOCK.createBlockData();
-//                case 10 -> Material.COAL_BLOCK.createBlockData();
-//                case 11 -> Material.LAPIS_BLOCK.createBlockData();
-//                case 12 -> Material.DIAMOND_BLOCK.createBlockData();
-//                case 13 -> Material.EMERALD_BLOCK.createBlockData();
-//                case 14 -> Material.REDSTONE_BLOCK.createBlockData();
-//                case 15 -> Material.NETHERITE_BLOCK.createBlockData();
-//                default -> Material.COAL_ORE.createBlockData();
-//            });
-//            for (int y = 0; y < 16; y++) {
-//                chunkSection.set(0, y, 0, state);
-//            }
-//        }
-//        for (int x = 0; x < ghostChunk.getBlocks().length; x++) {
-//            for (int y = 0; y < ghostChunk.getBlocks()[x].length; y++) {
-//                for (int z = 0; z < ghostChunk.getBlocks()[x][y].length; z++) {
-//                    GhostBlock block = ghostChunk.getBlock(x, y, z);
-//                    if (block == null) {
-//                        continue;
-//                    }
-//                    chunk.set(x, y, z, block.getGlobalId());
-//                }
-//            }
-//        }
-        return chunk;
     }
 
     /**
