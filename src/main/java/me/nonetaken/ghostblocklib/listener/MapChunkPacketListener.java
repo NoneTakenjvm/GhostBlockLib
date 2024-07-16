@@ -13,6 +13,7 @@ import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import me.nonetaken.ghostblocklib.GhostBlock;
 import me.nonetaken.ghostblocklib.GhostBlockChunk;
 import me.nonetaken.ghostblocklib.GhostBlockCuboid;
+import me.nonetaken.ghostblocklib.GhostBlockLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -32,6 +33,9 @@ public class MapChunkPacketListener extends SimplePacketListenerAbstract {
             return;
         }
         Player player = (Player) event.getPlayer();
+        if (GhostBlockLib.isIgnoringGhostBlocks(player)) {
+            return;
+        }
         WrapperPlayServerChunkData packet = new WrapperPlayServerChunkData(event);
         GhostBlockCuboid cuboid = getCuboidByLocation(player.getWorld(), packet.getColumn().getX() * 16, packet.getColumn().getZ() * 16);
         // Ignore all chunks that are not in a ghost block cuboid
