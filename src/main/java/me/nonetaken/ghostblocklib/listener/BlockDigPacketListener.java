@@ -59,10 +59,11 @@ public class BlockDigPacketListener extends PacketListenerAbstract {
                 return;
             }
             boolean instant = BlockHardness.canInstantBreak(player, player.getInventory().getItemInMainHand(), block.getMaterial());
+            Bukkit.broadcastMessage("instant=" + instant+", action="+action.name());
             if (instant && action != DiggingAction.START_DIGGING) {
                 event.setCancelled(true);
-            } else if (!instant && action != DiggingAction.RELEASE_USE_ITEM) {
-                event.setCancelled(true);
+            } else if (!instant && action != DiggingAction.FINISHED_DIGGING) {
+                return;
             }
         }
         // Event must be called synchronously
