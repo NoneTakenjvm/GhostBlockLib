@@ -7,6 +7,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
+import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import me.nonetaken.ghostblocklib.GhostBlock;
 import me.nonetaken.ghostblocklib.GhostBlockCuboid;
 import me.nonetaken.ghostblocklib.GhostBlockLib;
@@ -14,6 +15,7 @@ import me.nonetaken.ghostblocklib.event.BlockPlaceAgainstGhostBlockEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -86,10 +88,11 @@ public class BlockPlacePacketListener extends PacketListenerAbstract {
                 }
                 // Tell the client the block was not placed
                 else {
+                    Bukkit.broadcastMessage("setting to air");
                     WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(newLocation.getBlockX(), newLocation.getBlockY(), newLocation.getBlockZ()), 0);
                     PacketEvents.getAPI().getPlayerManager().sendPacket(player, changePacket);
                 }
             }
-        }.runTask(GhostBlockLib.getINSTANCE());
+        }.runTaskLater(GhostBlockLib.getINSTANCE(), 1);
     }
 }
