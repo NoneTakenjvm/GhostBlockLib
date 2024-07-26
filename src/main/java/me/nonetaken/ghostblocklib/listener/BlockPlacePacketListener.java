@@ -2,12 +2,12 @@ package me.nonetaken.ghostblocklib.listener;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
-import io.github.retrooper.packetevents.util.SpigotConversionUtil;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import me.nonetaken.ghostblocklib.GhostBlock;
 import me.nonetaken.ghostblocklib.GhostBlockCuboid;
 import me.nonetaken.ghostblocklib.GhostBlockLib;
@@ -15,7 +15,6 @@ import me.nonetaken.ghostblocklib.event.BlockPlaceAgainstGhostBlockEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -27,6 +26,9 @@ import static me.nonetaken.ghostblocklib.GhostBlockManager.getCuboidByLocation;
  * Created: 31/07/2023 at 16:49
  */
 public class BlockPlacePacketListener extends PacketListenerAbstract {
+    public BlockPlacePacketListener() {
+        super(PacketListenerPriority.LOWEST);
+    }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
@@ -54,17 +56,17 @@ public class BlockPlacePacketListener extends PacketListenerAbstract {
         }
         short face = packet.getFace().getFaceValue();
         Location newLocation = new Location(player.getWorld(), vector.getX(), vector.getY(), vector.getZ());
-        if (face == 0) {
+        if (face == 0) { // Down
             newLocation.add(0, -1, 0);
-        } else if (face == 1) {
+        } else if (face == 1) { // Up
             newLocation.add(0, 1, 0);
-        } else if (face == 2) {
+        } else if (face == 2) { // North
             newLocation.add(0, 0, -1);
-        } else if (face == 3) {
+        } else if (face == 3) { // South
             newLocation.add(0, 0, 1);
-        } else if (face == 4) {
+        } else if (face == 4) { // West
             newLocation.add(-1, 0, 0);
-        } else if (face == 5) {
+        } else if (face == 5) { // East
             newLocation.add(1, 0, 0);
         }
         // Event must be called synchronously
@@ -88,11 +90,11 @@ public class BlockPlacePacketListener extends PacketListenerAbstract {
                 }
                 // Tell the client the block was not placed
                 else {
-                    Bukkit.broadcastMessage("setting to air");
-                    WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(newLocation.getBlockX(), newLocation.getBlockY(), newLocation.getBlockZ()), 0);
-                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, changePacket);
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(
+                            player, new WrapperPlayServerAcknowledgeBlockChanges(packet.getSequence())
+                    );
                 }
             }
-        }.runTaskLater(GhostBlockLib.getINSTANCE(), 1);
+        }.runTaskLater(GhostBlockLib.getINSTANCE(), 1L);
     }
 }

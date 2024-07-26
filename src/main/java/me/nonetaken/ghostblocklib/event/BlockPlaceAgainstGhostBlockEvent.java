@@ -8,7 +8,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
-import org.bukkit.material.MaterialData;
 
 /**
  * Project: me.nonetaken.ghostblocklib.event | Author: NoneTaken#0001

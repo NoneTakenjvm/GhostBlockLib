@@ -9,7 +9,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.EnumSet;
-import java.util.Objects;
 
 import static org.bukkit.Material.*;
 
