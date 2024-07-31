@@ -7,6 +7,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import me.nonetaken.ghostblocklib.GhostBlock;
 import me.nonetaken.ghostblocklib.GhostBlockCuboid;
@@ -85,6 +86,7 @@ public class BlockDigPacketListener extends PacketListenerAbstract {
                             && onlinePlayer.getLocation().distance(player.getLocation()) < 64 // Player is within 64 blocks
                             && !GhostBlockLib.isIgnoringGhostBlocks(onlinePlayer)) { // Player is not ignoring GhostBlock data
                         PacketEvents.getAPI().getPlayerManager().sendPacket(onlinePlayer, changePacket);
+                        PacketEvents.getAPI().getPlayerManager().sendPacket(player, new WrapperPlayServerAcknowledgeBlockChanges(packet.getSequence()));
                     }
                 }
             }
