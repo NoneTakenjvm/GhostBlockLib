@@ -75,6 +75,7 @@ public class BlockDigPacketListener extends PacketListenerAbstract {
                 if (ghostBlockBreakEvent.isCancelled()) {
                     WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(vector.getX(), vector.getY(), vector.getZ()), block.getGlobalId());
                     PacketEvents.getAPI().getPlayerManager().sendPacket(player, changePacket);
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, new WrapperPlayServerAcknowledgeBlockChanges(packet.getSequence()));
                     event.setCancelled(true);
                     return;
                 }
