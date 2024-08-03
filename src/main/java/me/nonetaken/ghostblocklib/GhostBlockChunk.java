@@ -3,10 +3,7 @@ package me.nonetaken.ghostblocklib;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
-import io.papermc.paper.math.Position;
 import lombok.Getter;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -55,6 +52,7 @@ public class GhostBlockChunk {
         // Add 64 onto the y coordinate, so we can support negative y levels
         this.blocks[Math.floorMod(block.getX(), 16)][block.getY() + 64][Math.floorMod(block.getZ(), 16)] = block;
         this.changes.add(block.getVector());
+
     }
 
     /**
@@ -81,12 +79,13 @@ public class GhostBlockChunk {
                 continue;
             }
             // Add the encoded block to the list of encoded blocks for the chunk section the block is in
-            encodedBlocks.computeIfAbsent((change.getBlockY() + 64) >> 4, k -> new ArrayList<>())
+            encodedBlocks.computeIfAbsent(change.getBlockY() >> 4, k -> new ArrayList<>())
                     .add(new WrapperPlayServerMultiBlockChange.EncodedBlock(block.getGlobalId(), change.getBlockX(), change.getBlockY(), change.getBlockZ()));
         }
         // Send the changed chunk sections to the client
         for (Map.Entry<Integer, List<WrapperPlayServerMultiBlockChange.EncodedBlock>> entry : encodedBlocks.entrySet()) {
-            WrapperPlayServerMultiBlockChange blockChangePacket = new WrapperPlayServerMultiBlockChange(new Vector3i(this.chunkX, entry.getKey(), this.chunkZ), false, entry.getValue().toArray(new WrapperPlayServerMultiBlockChange.EncodedBlock[0]));
+            // Unsure what trustEdges does, but I'm a glass half full guy so true it is
+            WrapperPlayServerMultiBlockChange blockChangePacket = new WrapperPlayServerMultiBlockChange(new Vector3i(this.chunkX, entry.getKey(), this.chunkZ), true, entry.getValue().toArray(new WrapperPlayServerMultiBlockChange.EncodedBlock[0]));
             for (Player player : players) {
                 // Some players might be ignoring ghost blocks
                 if (!GhostBlockLib.isIgnoringGhostBlocks(player)) {
@@ -94,7 +93,6 @@ public class GhostBlockChunk {
                 }
             }
         }
-
         // Clear the change list
         this.changes.clear();
     }
