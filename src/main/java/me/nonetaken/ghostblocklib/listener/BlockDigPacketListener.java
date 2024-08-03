@@ -87,7 +87,7 @@ public class BlockDigPacketListener extends PacketListenerAbstract {
                             && onlinePlayer.getLocation().distance(player.getLocation()) < 64 // Player is within 64 blocks
                             && !GhostBlockLib.isIgnoringGhostBlocks(onlinePlayer)) { // Player is not ignoring GhostBlock data
                         PacketEvents.getAPI().getPlayerManager().sendPacket(onlinePlayer, changePacket);
-                        PacketEvents.getAPI().getPlayerManager().sendPacket(player, new WrapperPlayServerAcknowledgeBlockChanges(packet.getSequence()));
+                        PacketEvents.getAPI().getPlayerManager().sendPacket(onlinePlayer, new WrapperPlayServerAcknowledgeBlockChanges(packet.getSequence()));
                     }
                 }
             }
