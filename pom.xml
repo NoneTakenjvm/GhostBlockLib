@@ -79,7 +79,13 @@
         <dependency>
             <groupId>org.purpurmc.purpur</groupId>
             <artifactId>purpur-api</artifactId>
-            <version>1.20.4-R0.1-SNAPSHOT</version>
+            <version>1.20.6-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.purpurmc</groupId>
+            <artifactId>purpur</artifactId>
+            <version>1.20.6</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

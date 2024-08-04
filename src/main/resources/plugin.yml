@@ -4,7 +4,7 @@ main: me.nonetaken.ghostblocklib.GhostBlockLib
 authors: [ NoneTaken ]
 description: A library to handle GhostBlock regions
 depend: [ packetevents ]
-api-version: 1.20
+api-version: 1.20.6
 commands:
   ignoreghostblocks:
     description: "When enabled, you will not be sent GhostBlocks"
