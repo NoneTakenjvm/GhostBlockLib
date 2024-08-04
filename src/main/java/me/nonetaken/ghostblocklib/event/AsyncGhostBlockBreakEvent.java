@@ -1,7 +1,6 @@
 package me.nonetaken.ghostblocklib.event;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nonetaken.ghostblocklib.GhostBlock;
 import me.nonetaken.ghostblocklib.GhostBlockCuboid;
@@ -14,12 +13,17 @@ import org.bukkit.event.Cancellable;
  */
 @Getter
 @Setter
-@RequiredArgsConstructor
-public class GhostBlockBreakEvent extends WrappedBukkitEvent implements Cancellable {
+public class AsyncGhostBlockBreakEvent extends WrappedBukkitEvent implements Cancellable {
 
     private final GhostBlockCuboid ghostBlockCuboid;
     private final GhostBlock ghostBlock;
     private final Player player;
     private boolean cancelled;
 
+    public AsyncGhostBlockBreakEvent(GhostBlockCuboid ghostBlockCuboid, GhostBlock ghostBlock, Player player) {
+        super(true);
+        this.ghostBlockCuboid = ghostBlockCuboid;
+        this.ghostBlock = ghostBlock;
+        this.player = player;
+    }
 }

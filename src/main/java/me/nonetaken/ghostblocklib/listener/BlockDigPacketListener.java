@@ -12,13 +12,12 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBl
 import me.nonetaken.ghostblocklib.GhostBlock;
 import me.nonetaken.ghostblocklib.GhostBlockCuboid;
 import me.nonetaken.ghostblocklib.GhostBlockLib;
-import me.nonetaken.ghostblocklib.event.GhostBlockBreakEvent;
+import me.nonetaken.ghostblocklib.event.AsyncGhostBlockBreakEvent;
 import me.nonetaken.ghostblocklib.util.BlockHardness;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import static me.nonetaken.ghostblocklib.GhostBlockManager.getCuboidByLocation;
 
@@ -65,33 +64,27 @@ public class BlockDigPacketListener extends PacketListenerAbstract {
                 return;
             }
         }
-        // Event must be called synchronously
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                GhostBlockBreakEvent ghostBlockBreakEvent = new GhostBlockBreakEvent(cuboid, block, player);
-                Bukkit.getPluginManager().callEvent(ghostBlockBreakEvent);
-                // If the event was cancelled, tell the player the block wasn't broken
-                if (ghostBlockBreakEvent.isCancelled()) {
-                    WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(vector.getX(), vector.getY(), vector.getZ()), block.getGlobalId());
-                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, changePacket);
-                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, new WrapperPlayServerAcknowledgeBlockChanges(packet.getSequence()));
-                    event.setCancelled(true);
-                    return;
-                }
-                cuboid.setBlock(new GhostBlock(vector.getX(), vector.getY(), vector.getZ()).setType(Material.AIR));
-                // Notify nearby players of the block change
-                WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(vector.getX(), vector.getY(), vector.getZ()), 0);
-                for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-                    if (onlinePlayer.getWorld() == player.getWorld()  // Player is in the same world
-                            && onlinePlayer.getLocation().distance(player.getLocation()) < 64 // Player is within 64 blocks
-                            && !GhostBlockLib.isIgnoringGhostBlocks(onlinePlayer)) { // Player is not ignoring GhostBlock data
-                        PacketEvents.getAPI().getPlayerManager().sendPacket(onlinePlayer, changePacket);
-                        PacketEvents.getAPI().getPlayerManager().sendPacket(onlinePlayer, new WrapperPlayServerAcknowledgeBlockChanges(packet.getSequence()));
-                    }
-                }
+        AsyncGhostBlockBreakEvent ghostBlockBreakEvent = new AsyncGhostBlockBreakEvent(cuboid, block, player);
+        Bukkit.getPluginManager().callEvent(ghostBlockBreakEvent);
+        // If the event was cancelled, tell the player the block wasn't broken
+        if (ghostBlockBreakEvent.isCancelled()) {
+            WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(vector.getX(), vector.getY(), vector.getZ()), block.getGlobalId());
+            PacketEvents.getAPI().getPlayerManager().sendPacket(player, changePacket);
+            PacketEvents.getAPI().getPlayerManager().sendPacket(player, new WrapperPlayServerAcknowledgeBlockChanges(packet.getSequence()));
+            event.setCancelled(true);
+            return;
+        }
+        cuboid.setBlock(new GhostBlock(vector.getX(), vector.getY(), vector.getZ()).setType(Material.AIR));
+        // Notify nearby players of the block change
+        WrapperPlayServerBlockChange changePacket = new WrapperPlayServerBlockChange(new Vector3i(vector.getX(), vector.getY(), vector.getZ()), 0);
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            if (onlinePlayer.getWorld() == player.getWorld()  // Player is in the same world
+                    && onlinePlayer.getLocation().distance(player.getLocation()) < 64 // Player is within 64 blocks
+                    && !GhostBlockLib.isIgnoringGhostBlocks(onlinePlayer)) { // Player is not ignoring GhostBlock data
+                PacketEvents.getAPI().getPlayerManager().sendPacket(onlinePlayer, changePacket);
             }
-        }.runTask(GhostBlockLib.getINSTANCE());
+        }
+        PacketEvents.getAPI().getPlayerManager().sendPacket(player, new WrapperPlayServerAcknowledgeBlockChanges(packet.getSequence()));
         event.setCancelled(true);
     }
 }

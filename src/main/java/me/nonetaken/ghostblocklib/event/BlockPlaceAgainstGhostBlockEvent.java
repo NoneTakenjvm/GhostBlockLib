@@ -16,7 +16,6 @@ import org.bukkit.event.Cancellable;
  * Called when a player tries to place a block against a {@link me.nonetaken.ghostblocklib.GhostBlock}
  */
 @Getter
-@RequiredArgsConstructor
 public class BlockPlaceAgainstGhostBlockEvent extends WrappedBukkitEvent implements Cancellable {
 
     private final Player player;
@@ -25,4 +24,11 @@ public class BlockPlaceAgainstGhostBlockEvent extends WrappedBukkitEvent impleme
     private final Material material;
     @Setter private boolean cancelled = false;
 
+    public BlockPlaceAgainstGhostBlockEvent(Player player, GhostBlockCuboid cuboid, Location location, Material material) {
+        super(false);
+        this.player = player;
+        this.cuboid = cuboid;
+        this.location = location;
+        this.material = material;
+    }
 }

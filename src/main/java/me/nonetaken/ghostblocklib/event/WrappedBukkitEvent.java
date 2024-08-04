@@ -9,6 +9,10 @@ import org.bukkit.event.HandlerList;
 public class WrappedBukkitEvent extends Event {
     private static final HandlerList HANDLERS = new HandlerList();
 
+    public WrappedBukkitEvent(boolean async) {
+        super(async);
+    }
+
     @Override
     public HandlerList getHandlers() {
         return HANDLERS;

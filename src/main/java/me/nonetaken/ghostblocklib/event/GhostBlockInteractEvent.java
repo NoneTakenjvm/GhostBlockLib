@@ -13,12 +13,18 @@ import org.bukkit.event.block.Action;
  * Created: 23/03/2024 at 13:01
  */
 @Getter
-@RequiredArgsConstructor
 public class GhostBlockInteractEvent extends WrappedBukkitEvent implements Cancellable {
 
     private final Player player;
     private final GhostBlock ghostBlock;
     private final Action action;
     @Setter private boolean cancelled;
+
+    public GhostBlockInteractEvent(Player player, GhostBlock ghostBlock, Action action) {
+        super(false);
+        this.player = player;
+        this.ghostBlock = ghostBlock;
+        this.action = action;
+    }
 
 }
