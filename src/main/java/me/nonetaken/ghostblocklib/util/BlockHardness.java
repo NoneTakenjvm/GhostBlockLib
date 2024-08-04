@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 
 import static org.bukkit.Material.*;
@@ -119,7 +120,7 @@ public class BlockHardness {
                 speedMultiplier += (float) (Math.pow(itemStack.getEnchantmentLevel(Enchantment.EFFICIENCY), 2) + 1);
             }
         }
-        for (PotionEffect potionEffect : player.getActivePotionEffects()) {
+        for (PotionEffect potionEffect : new ArrayList<>(player.getActivePotionEffects())) {
             if (potionEffect.getType().equals(PotionEffectType.HASTE)) {
                 speedMultiplier *= (float) (0.2 * (potionEffect.getAmplifier() + 1) + 1);
                 break;
