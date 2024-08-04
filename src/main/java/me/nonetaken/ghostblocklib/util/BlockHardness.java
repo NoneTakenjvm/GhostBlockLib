@@ -116,12 +116,12 @@ public class BlockHardness {
         float speedMultiplier = 1f;
         if (isBestTool(block, itemStack.getType())) {
             speedMultiplier = getToolSpeed(itemStack.getType());
-            if (itemStack.getEnchantmentLevel(Enchantment.EFFICIENCY) > 0) {
-                speedMultiplier += (float) (Math.pow(itemStack.getEnchantmentLevel(Enchantment.EFFICIENCY), 2) + 1);
+            if (itemStack.getEnchantmentLevel(Enchantment.DIG_SPEED) > 0) {
+                speedMultiplier += (float) (Math.pow(itemStack.getEnchantmentLevel(Enchantment.DIG_SPEED), 2) + 1);
             }
         }
         for (PotionEffect potionEffect : new ArrayList<>(player.getActivePotionEffects())) {
-            if (potionEffect.getType().equals(PotionEffectType.HASTE)) {
+            if (potionEffect.getType().equals(PotionEffectType.FAST_DIGGING)) {
                 speedMultiplier *= (float) (0.2 * (potionEffect.getAmplifier() + 1) + 1);
                 break;
             }
