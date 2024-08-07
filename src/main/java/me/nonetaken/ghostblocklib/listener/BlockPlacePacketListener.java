@@ -47,8 +47,9 @@ public class BlockPlacePacketListener extends PacketListenerAbstract {
             return;
         }
         event.setCancelled(true);
-        ItemStack item = player.getInventory().getItemInMainHand();
-        if (item.getType().isAir()) {
+        int slot = player.getInventory().getHeldItemSlot();
+        ItemStack item = player.getInventory().getItem(slot);
+        if (item != null || item.getType().isAir()) {
             return;
         }
         if (!item.getType().isBlock() && !item.getType().isSolid()) {
@@ -82,10 +83,10 @@ public class BlockPlacePacketListener extends PacketListenerAbstract {
                         return;
                     }
                     if (item.getAmount() == 0) {
-                        player.getInventory().setItemInMainHand(null);
+                        player.getInventory().setItem(slot, null);
                     } else {
                         item.setAmount(item.getAmount() - 1);
-                        player.getInventory().setItemInMainHand(item);
+                        player.getInventory().setItem(slot, item);
                     }
                 }
                 // Tell the client the block was not placed
@@ -95,6 +96,6 @@ public class BlockPlacePacketListener extends PacketListenerAbstract {
                     );
                 }
             }
-        }.runTaskLater(GhostBlockLib.getINSTANCE(), 1L);
+        }.runTaskLater(GhostBlockLib.getINSTANCE(), 0L);
     }
 }
