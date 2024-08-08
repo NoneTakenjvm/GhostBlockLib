@@ -37,4 +37,12 @@ public class Utils {
         }
         return vectors;
     }
+
+    public int toChunkCoordinate(int worldCoordinate) {
+        return worldCoordinate >> 4;
+    }
+
+    public int toWorldCoordinate(int chunkCoordinate) {
+        return chunkCoordinate << 4;
+    }
 }

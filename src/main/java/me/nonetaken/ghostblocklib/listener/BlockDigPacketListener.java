@@ -36,7 +36,7 @@ public class BlockDigPacketListener extends PacketListenerAbstract {
         Player player = (Player) event.getPlayer();
         DiggingAction action = packet.getAction();
         Vector3i vector = packet.getBlockPosition();
-        GhostBlockCuboid cuboid = getCuboidByLocation(player.getWorld(), vector.getX(), vector.getZ());
+        GhostBlockCuboid cuboid = getCuboidByLocation(player.getWorld(), vector.getX(), vector.getY(), vector.getZ());
         // If the player isn't breaking a block inside a ghost cuboid, return
         if (cuboid == null) {
             return;

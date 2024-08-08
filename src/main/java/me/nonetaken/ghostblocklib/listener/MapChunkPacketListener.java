@@ -9,8 +9,11 @@ import me.nonetaken.ghostblocklib.GhostBlock;
 import me.nonetaken.ghostblocklib.GhostBlockChunk;
 import me.nonetaken.ghostblocklib.GhostBlockCuboid;
 import me.nonetaken.ghostblocklib.GhostBlockLib;
+import me.nonetaken.ghostblocklib.util.Utils;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import static me.nonetaken.ghostblocklib.GhostBlockManager.getCuboidByChunkCoordinates;
 import static me.nonetaken.ghostblocklib.GhostBlockManager.getCuboidByLocation;
 
 /**
@@ -29,12 +32,12 @@ public class MapChunkPacketListener extends SimplePacketListenerAbstract {
             return;
         }
         WrapperPlayServerChunkData packet = new WrapperPlayServerChunkData(event);
-        GhostBlockCuboid cuboid = getCuboidByLocation(player.getWorld(), packet.getColumn().getX() * 16, packet.getColumn().getZ() * 16);
+        GhostBlockCuboid cuboid = getCuboidByChunkCoordinates(player.getWorld(), packet.getColumn().getX(), packet.getColumn().getZ());
         // Ignore all chunks that are not in a ghost block cuboid
         if (cuboid == null) {
             return;
         }
-        GhostBlockChunk ghostChunk = cuboid.getGhostBlockChunk(packet.getColumn().getX() * 16, packet.getColumn().getZ() * 16);
+        GhostBlockChunk ghostChunk = cuboid.getGhostBlockChunk(Utils.toWorldCoordinate(packet.getColumn().getX()), Utils.toWorldCoordinate(packet.getColumn().getZ()));
         if (ghostChunk == null) {
             return;
         }

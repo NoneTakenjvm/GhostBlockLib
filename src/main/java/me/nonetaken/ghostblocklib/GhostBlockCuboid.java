@@ -67,9 +67,11 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         if (!this.containsChunk(x, z)) {
             return null;
         }
+        int chunkX = Utils.toChunkCoordinate(x);
+        int chunkZ = Utils.toChunkCoordinate(z);
         // Fetch the chunk from the cache, or create a new one if it isn't in the cache
-        return this.chunks.computeIfAbsent(x >> 4, val -> new ConcurrentHashMap<>())
-                          .computeIfAbsent(z >> 4, val -> new GhostBlockChunk(this, x >> 4, z >> 4));
+        return this.chunks.computeIfAbsent(chunkX, val -> new ConcurrentHashMap<>())
+                          .computeIfAbsent(chunkZ, val -> new GhostBlockChunk(this, chunkX, chunkZ));
     }
 
     /**
@@ -330,8 +332,8 @@ public class GhostBlockCuboid implements Iterable<Vector> {
     /**
      * Return whether this cuboid is within the chunk at the provided world x and z coordinate
      *
-     * @param x the world x coordinate
-     * @param z the world z coordinate
+     * @param x the chunk x coordinate
+     * @param z the chunk z coordinate
      * @return whether this cuboid is in the chunk
      */
     public boolean containsChunk(int x, int z) {

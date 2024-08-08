@@ -19,7 +19,7 @@ import java.util.List;
 public class GhostBlockManager extends PacketListenerAbstract {
 
     @Getter
-    private static final List<GhostBlockCuboid> cuboids = Collections.synchronizedList(new ArrayList<>());
+    private static final List<GhostBlockCuboid> CUBOIDS = Collections.synchronizedList(new ArrayList<>());
 
     public static void init() {
         PacketEvents.getAPI().getEventManager().registerListeners(
@@ -30,21 +30,42 @@ public class GhostBlockManager extends PacketListenerAbstract {
     }
 
     /**
-     * Return the provided {@link GhostBlockCuboid} that the provided coordinates fall within
-     * <p>
+     * Return the GhostBlockCuboid that the provided chunk x and z coordinates fall within
      * If the coordinates are not in any ghost block, null is returned
      *
      * @param world the world
-     * @param x     the x coordinate
-     * @param z     the z coordinate
-     * @return whether the coordinates are in a cuboid or not
+     * @param x the chunk x coordinate
+     * @param z the chunk z coordinate
+     * @return the cuboid the coordinates fall within, or null if none
      */
-    public static GhostBlockCuboid getCuboidByLocation(World world, int x, int z) {
-        for (GhostBlockCuboid cuboid : cuboids) {
+    public static GhostBlockCuboid getCuboidByChunkCoordinates(World world, int x, int z) {
+        for (GhostBlockCuboid cuboid : CUBOIDS) {
             if (!world.equals(cuboid.getWorld())) {
                 continue;
             }
-            if (cuboid.containsChunk(x, z)) {
+            if (cuboid.containsChunk(x * 16, z * 16)) {
+                return cuboid;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Return the GhostBlockCuboid that the provided world x, y and z coordinates fall within
+     * If the coordinates are not in any ghost block, null is returned
+     *
+     * @param world the world
+     * @param x     the world x coordinate
+     * @param y     the world y coordinate
+     * @param z     the world z coordinate
+     * @return the cuboid the coordinates fall within, or null if none
+     */
+    public static GhostBlockCuboid getCuboidByLocation(World world, int x, int y, int z) {
+        for (GhostBlockCuboid cuboid : CUBOIDS) {
+            if (!world.equals(cuboid.getWorld())) {
+                continue;
+            }
+            if (cuboid.contains(x, y, z)) {
                 return cuboid;
             }
         }
@@ -57,7 +78,7 @@ public class GhostBlockManager extends PacketListenerAbstract {
      * @param cuboid the cuboid
      */
     public static void registerGhostBlockCuboid(GhostBlockCuboid cuboid) {
-        cuboids.add(cuboid);
+        CUBOIDS.add(cuboid);
     }
 
     /**
@@ -66,7 +87,7 @@ public class GhostBlockManager extends PacketListenerAbstract {
      * @param cuboid the cuboid
      */
     public static void unregisterGhostBlockCuboid(GhostBlockCuboid cuboid) {
-        cuboids.remove(cuboid);
+        CUBOIDS.remove(cuboid);
         cuboid.getChunks().clear();
     }
 }
