@@ -39,7 +39,6 @@ public class BlockPlacePacketListener extends PacketListenerAbstract {
         Player player = (Player) event.getPlayer();
         // The position of the block that was placed against
         Location placedAgainstPosition = getBlockPlacedAgainst(packet, player);
-        Bukkit.getScheduler().runTask(GhostBlockLib.getINSTANCE(), () -> placedAgainstPosition.getBlock().setType(Material.GLOWSTONE));
         // Get the ghost block cuboid the block placed against is within
         GhostBlockCuboid cuboid = getCuboidByLocation(player.getWorld(), placedAgainstPosition.getBlockX(), placedAgainstPosition.getBlockY(), placedAgainstPosition.getBlockZ());
         // Return if the player is not placing within a ghost block cuboid or the block placed against isn't a ghost block
