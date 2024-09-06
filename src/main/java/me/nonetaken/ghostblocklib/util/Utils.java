@@ -1,5 +1,6 @@
 package me.nonetaken.ghostblocklib.util;
 
+import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.experimental.UtilityClass;
 import org.bukkit.util.Vector;
 
@@ -44,5 +45,9 @@ public class Utils {
 
     public int toWorldCoordinate(int chunkCoordinate) {
         return chunkCoordinate << 4;
+    }
+
+    public Vector3i toVector3i(Vector vector) {
+        return new Vector3i(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
     }
 }

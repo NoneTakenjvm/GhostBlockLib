@@ -4,6 +4,7 @@ import com.github.retrooper.packetevents.event.SimplePacketListenerAbstract;
 import com.github.retrooper.packetevents.event.simple.PacketPlaySendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
+import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData;
 import me.nonetaken.ghostblocklib.GhostBlock;
 import me.nonetaken.ghostblocklib.GhostBlockChunk;
@@ -11,6 +12,7 @@ import me.nonetaken.ghostblocklib.GhostBlockCuboid;
 import me.nonetaken.ghostblocklib.GhostBlockLib;
 import me.nonetaken.ghostblocklib.util.Utils;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.entity.Player;
 
 import static me.nonetaken.ghostblocklib.GhostBlockManager.getCuboidByChunkCoordinates;
@@ -43,7 +45,7 @@ public class MapChunkPacketListener extends SimplePacketListenerAbstract {
         }
         event.markForReEncode(true);
         for (int i = 0; i < packet.getColumn().getChunks().length; i++) {
-            BaseChunk chunk = packet.getColumn().getChunks()[i];
+            Chunk_v1_18 chunk = (Chunk_v1_18) packet.getColumn().getChunks()[i];
             for (int x = 0; x < 16; x++) {
                 int yLevel = -64 + (i * 16); // This is the Y level at the bottom of this base chunk
                 for (int y = yLevel; y < yLevel + 16; y++) {
@@ -53,6 +55,7 @@ public class MapChunkPacketListener extends SimplePacketListenerAbstract {
                             continue;
                         }
                         chunk.set(x, y % 16, z, block.getBlockState());
+                        chunk.setBlockCount(4096);
                     }
                 }
             }

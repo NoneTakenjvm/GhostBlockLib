@@ -1,17 +1,23 @@
 package me.nonetaken.ghostblocklib;
 
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.player.PlayerManager;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
+import io.papermc.paper.math.Position;
 import lombok.Getter;
 import lombok.Setter;
 import me.nonetaken.ghostblocklib.util.Utils;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -33,6 +39,7 @@ public class GhostBlockCuboid implements Iterable<Vector> {
 
     private int x1, y1, z1, x2, y2, z2;
     private Vector chunkMin, chunkMax;
+    private int changeCount = 0;
 
     public GhostBlockCuboid(@Nullable World world, Vector min, Vector max) {
         this.world = world;
@@ -97,6 +104,7 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         GhostBlockChunk chunk = this.getGhostBlockChunk(block.getX(), block.getZ());
         if (chunk != null) {
             chunk.setBlock(block);
+            ++this.changeCount;
         }
     }
 
@@ -171,13 +179,19 @@ public class GhostBlockCuboid implements Iterable<Vector> {
 
     /**
      * Refresh this cuboid for the provided {@link Player}s
-     *
-     * @see GhostBlockChunk#refresh(Player...)
      */
+    @SuppressWarnings("UnstableApiUsage")
     public synchronized void refresh(Player... players) {
-        for (Map<Integer, GhostBlockChunk> map : this.chunks.values()) {
-            for (GhostBlockChunk chunk : map.values()) {
-                chunk.refresh(players);
+        Map<Position, BlockData> changes = new HashMap<>();
+        for (Map<Integer, GhostBlockChunk> chunkRow : this.chunks.values()) {
+            for (GhostBlockChunk chunk : chunkRow.values()) {
+                for (Player player : players) {
+                    if (GhostBlockLib.isIgnoringGhostBlocks(player)) {
+                        continue;
+                    }
+                    player.sendMultiBlockChange(chunk.groupChanges());
+                }
+                chunk.clearChanges();
             }
         }
     }
