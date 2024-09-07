@@ -180,18 +180,10 @@ public class GhostBlockCuboid implements Iterable<Vector> {
     /**
      * Refresh this cuboid for the provided {@link Player}s
      */
-    @SuppressWarnings("UnstableApiUsage")
     public synchronized void refresh(Player... players) {
-        Map<Position, BlockData> changes = new HashMap<>();
         for (Map<Integer, GhostBlockChunk> chunkRow : this.chunks.values()) {
             for (GhostBlockChunk chunk : chunkRow.values()) {
-                for (Player player : players) {
-                    if (GhostBlockLib.isIgnoringGhostBlocks(player)) {
-                        continue;
-                    }
-                    player.sendMultiBlockChange(chunk.groupChanges());
-                }
-                chunk.clearChanges();
+                chunk.refresh(players);
             }
         }
     }

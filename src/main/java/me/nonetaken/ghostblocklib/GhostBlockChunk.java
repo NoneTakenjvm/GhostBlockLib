@@ -57,27 +57,39 @@ public class GhostBlockChunk {
     }
 
     /**
-     * Clear all changes to this chunk
-     */
-    public void clearChanges() {
-        this.changes.clear();
-    }
-
-    /**
-     * Group and return all changes to this chunk
+     * Refresh this chunk for the provided {@link Player}s
+     * All players that should see the changes should be provided
      *
-     * @return the changes to this chunk
+     * @param players the players to refresh this chunk for
      */
-    @SuppressWarnings("UnstableApiUsage")
-    public synchronized Map<Position, BlockData> groupChanges() {
-        Map<Position, BlockData> changes = new HashMap<>();
+    public synchronized void refresh(Player... players) {
+        if (this.changes.isEmpty()) {
+            return;
+        }
+        // K: chunk section Y coordinate, V: encoded block
+        Map<Integer, List<WrapperPlayServerMultiBlockChange.EncodedBlock>> encodedBlocks = new HashMap<>();
         for (Vector change : this.changes) {
             GhostBlock block = this.getBlock(change.getBlockX(), change.getBlockY(), change.getBlockZ());
+            // If the changed block is null, skip it
             if (block == null) {
                 continue;
             }
-            changes.put(Position.block(block.getX(), block.getY(), block.getZ()), block.getMaterial().createBlockData());
+            // Add the encoded block to the list of encoded blocks for the chunk section the block is in
+            encodedBlocks.computeIfAbsent(change.getBlockY() >> 4, k -> new ArrayList<>())
+                    .add(new WrapperPlayServerMultiBlockChange.EncodedBlock(block.getGlobalId(), change.getBlockX(), change.getBlockY(), change.getBlockZ()));
         }
-        return changes;
+        // Send the changed chunk sections to the client
+        for (Map.Entry<Integer, List<WrapperPlayServerMultiBlockChange.EncodedBlock>> entry : encodedBlocks.entrySet()) {
+            // Unsure what trustEdges does, but I'm a glass half full guy so true it is
+            WrapperPlayServerMultiBlockChange blockChangePacket = new WrapperPlayServerMultiBlockChange(new Vector3i(this.chunkX, entry.getKey(), this.chunkZ), true, entry.getValue().toArray(new WrapperPlayServerMultiBlockChange.EncodedBlock[0]));
+            for (Player player : players) {
+                // Some players might be ignoring ghost blocks
+                if (!GhostBlockLib.isIgnoringGhostBlocks(player)) {
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, blockChangePacket);
+                }
+            }
+        }
+        // Clear the change list
+        this.changes.clear();
     }
 }
