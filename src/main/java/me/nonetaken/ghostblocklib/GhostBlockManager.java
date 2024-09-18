@@ -10,6 +10,7 @@ import org.bukkit.World;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /*
@@ -60,8 +61,11 @@ public class GhostBlockManager extends PacketListenerAbstract {
      * @param z     the world z coordinate
      * @return the cuboid the coordinates fall within, or null if none
      */
+    @SuppressWarnings("WhileLoopReplaceableByForEach")
     public static GhostBlockCuboid getCuboidByLocation(World world, int x, int y, int z) {
-        for (GhostBlockCuboid cuboid : CUBOIDS) {
+        Iterator<GhostBlockCuboid> iterator = CUBOIDS.iterator();
+        while (iterator.hasNext()) {
+            GhostBlockCuboid cuboid = iterator.next();
             if (!world.equals(cuboid.getWorld())) {
                 continue;
             }
