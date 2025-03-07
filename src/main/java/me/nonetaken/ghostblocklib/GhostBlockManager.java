@@ -40,11 +40,14 @@ public class GhostBlockManager extends PacketListenerAbstract {
      * @return the cuboid the coordinates fall within, or null if none
      */
     public static GhostBlockCuboid getCuboidByChunkCoordinates(World world, int x, int z) {
-        for (GhostBlockCuboid cuboid : CUBOIDS) {
+        for (GhostBlockCuboid cuboid : new ArrayList<>(CUBOIDS)) {
+            if (cuboid == null) {
+                continue;
+            }
             if (!world.equals(cuboid.getWorld())) {
                 continue;
             }
-            if (cuboid.containsChunk(x * 16, z * 16)) {
+            if (cuboid.containsChunk(x, z)) {
                 return cuboid;
             }
         }
