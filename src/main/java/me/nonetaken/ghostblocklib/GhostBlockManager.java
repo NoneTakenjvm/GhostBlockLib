@@ -47,7 +47,7 @@ public class GhostBlockManager extends PacketListenerAbstract {
             if (!world.equals(cuboid.getWorld())) {
                 continue;
             }
-            if (cuboid.containsChunk(x, z)) {
+            if (cuboid.containsChunk(x * 16, z * 16)) {
                 return cuboid;
             }
         }
