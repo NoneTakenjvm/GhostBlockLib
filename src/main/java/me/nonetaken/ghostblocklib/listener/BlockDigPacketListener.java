@@ -12,14 +12,13 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBl
 import me.nonetaken.ghostblocklib.GhostBlock;
 import me.nonetaken.ghostblocklib.GhostBlockCuboid;
 import me.nonetaken.ghostblocklib.GhostBlockLib;
+import me.nonetaken.ghostblocklib.GhostBlockManager;
 import me.nonetaken.ghostblocklib.event.AsyncGhostBlockBreakEvent;
 import me.nonetaken.ghostblocklib.util.BlockHardness;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-
-import static me.nonetaken.ghostblocklib.GhostBlockManager.getCuboidByLocation;
 
 /**
  * Project: me.nonetaken.ghostblocklib.listener | Author: NoneTaken#0001
@@ -36,7 +35,8 @@ public class BlockDigPacketListener extends PacketListenerAbstract {
         Player player = (Player) event.getPlayer();
         DiggingAction action = packet.getAction();
         Vector3i vector = packet.getBlockPosition();
-        GhostBlockCuboid cuboid = getCuboidByLocation(player.getWorld(), vector.getX(), vector.getY(), vector.getZ());
+        GhostBlockManager.CuboidCoordinateHandler handler = GhostBlockManager.getCuboidCoordinateHandler(player.getWorld());
+        GhostBlockCuboid cuboid = handler.getHighestPriorityCuboidByLocation(vector.getX(), vector.getY(), vector.getZ());
         // If the player isn't breaking a block inside a ghost cuboid, return
         if (cuboid == null) {
             return;

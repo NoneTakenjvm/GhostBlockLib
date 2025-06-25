@@ -10,16 +10,14 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerAcknowledgeBlockChanges;
 import me.nonetaken.ghostblocklib.GhostBlockCuboid;
 import me.nonetaken.ghostblocklib.GhostBlockLib;
+import me.nonetaken.ghostblocklib.GhostBlockManager;
 import me.nonetaken.ghostblocklib.event.BlockPlaceAgainstGhostBlockEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-
-import static me.nonetaken.ghostblocklib.GhostBlockManager.getCuboidByLocation;
 
 /**
  * Project: me.nonetaken.ghostblocklib.listener | Author: NoneTaken#0001
@@ -40,7 +38,8 @@ public class BlockPlacePacketListener extends PacketListenerAbstract {
         // The position of the block that was placed against
         Location placedAgainstPosition = getBlockPlacedAgainst(packet, player);
         // Get the ghost block cuboid the block placed against is within
-        GhostBlockCuboid cuboid = getCuboidByLocation(player.getWorld(), placedAgainstPosition.getBlockX(), placedAgainstPosition.getBlockY(), placedAgainstPosition.getBlockZ());
+        GhostBlockManager.CuboidCoordinateHandler handler = GhostBlockManager.getCuboidCoordinateHandler(player.getWorld());
+        GhostBlockCuboid cuboid = handler.getHighestPriorityCuboidByLocation(placedAgainstPosition.getBlockX(), placedAgainstPosition.getBlockY(), placedAgainstPosition.getBlockZ());
         // Return if the player is not placing within a ghost block cuboid or the block placed against isn't a ghost block
         if (cuboid == null) {
             return;
@@ -100,10 +99,10 @@ public class BlockPlacePacketListener extends PacketListenerAbstract {
         switch (packet.getFace()) {
             case UP -> placedAgainstPosition.add(0, -1, 0);
             case DOWN -> placedAgainstPosition.add(0, 1, 0);
-            case NORTH -> placedAgainstPosition.add(0, 0, 1);
-            case SOUTH -> placedAgainstPosition.add(0, 0, -1);
-            case WEST -> placedAgainstPosition.add(1, 0, 0);
-            case EAST -> placedAgainstPosition.add(-1, 0, 0);
+            case NORTH -> placedAgainstPosition.add(0, 0, -1);
+            case SOUTH -> placedAgainstPosition.add(0, 0, 1);
+            case WEST -> placedAgainstPosition.add(-1, 0, 0);
+            case EAST -> placedAgainstPosition.add(1, 0, 0);
         }
         return placedAgainstPosition;
     }

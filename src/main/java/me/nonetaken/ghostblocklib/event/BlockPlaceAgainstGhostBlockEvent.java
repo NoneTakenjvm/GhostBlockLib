@@ -1,7 +1,6 @@
 package me.nonetaken.ghostblocklib.event;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import me.nonetaken.ghostblocklib.GhostBlockCuboid;
 import org.bukkit.Location;

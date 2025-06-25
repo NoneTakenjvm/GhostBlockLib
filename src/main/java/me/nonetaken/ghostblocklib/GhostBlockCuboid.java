@@ -1,23 +1,18 @@
 package me.nonetaken.ghostblocklib;
 
-import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.manager.player.PlayerManager;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
-import io.papermc.paper.math.Position;
 import lombok.Getter;
 import lombok.Setter;
+import me.nonetaken.ghostblocklib.util.ChunkIntCoordinatePair;
 import me.nonetaken.ghostblocklib.util.Utils;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -34,14 +29,19 @@ public class GhostBlockCuboid implements Iterable<Vector> {
      * Key: Chunk X coordinate
      * Value: Map of Chunk Z coordinate to GhostBlockChunk
      */
-    private final Map<Integer, Map<Integer, GhostBlockChunk>> chunks = new ConcurrentHashMap<>();
+    private final Map<ChunkIntCoordinatePair, GhostBlockChunk> chunks = new ConcurrentHashMap<>();
     @Nullable @Setter private World world;
 
     private int x1, y1, z1, x2, y2, z2;
     private Vector chunkMin, chunkMax;
     private int changeCount = 0;
+    private int priority = 0;
 
     public GhostBlockCuboid(@Nullable World world, Vector min, Vector max) {
+        this(world, min, max, 0);
+    }
+
+    public GhostBlockCuboid(@Nullable World world, Vector min, Vector max, int priority) {
         this.world = world;
         this.x1 = Math.min(min.getBlockX(), max.getBlockX());
         this.y1 = Math.min(min.getBlockY(), max.getBlockY());
@@ -50,6 +50,7 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         this.y2 = Math.max(min.getBlockY(), max.getBlockY());
         this.z2 = Math.max(min.getBlockZ(), max.getBlockZ());
 
+        // Set the chunk min and chunk max
         int chunkX = this.x1 - (this.x1 % 16);
         int chunkZ = this.z1 - (this.z1 % 16);
         this.chunkMin =  new Vector(chunkX, min.getBlockY(), chunkZ);
@@ -57,6 +58,9 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         chunkX = this.x2 + (16 - (this.x2 % 16));
         chunkZ = this.z2 + (16 - (this.z2 % 16));
         this.chunkMax = new Vector(chunkX, max.getBlockY(), chunkZ);
+
+        // Set the priority
+        this.priority = priority;
 
         // Register the GhostBlockCuboid
         GhostBlockManager.registerGhostBlockCuboid(this);
@@ -77,8 +81,8 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         int chunkX = Utils.toChunkCoordinate(x);
         int chunkZ = Utils.toChunkCoordinate(z);
         // Fetch the chunk from the cache, or create a new one if it isn't in the cache
-        return this.chunks.computeIfAbsent(chunkX, val -> new ConcurrentHashMap<>())
-                          .computeIfAbsent(chunkZ, val -> new GhostBlockChunk(this, chunkX, chunkZ));
+        return this.chunks.computeIfAbsent(new ChunkIntCoordinatePair(chunkX, chunkZ),
+                val -> new GhostBlockChunk(this, chunkX, chunkZ));
     }
 
     /**
@@ -181,10 +185,8 @@ public class GhostBlockCuboid implements Iterable<Vector> {
      * Refresh this cuboid for the provided {@link Player}s
      */
     public synchronized void refresh(Player... players) {
-        for (Map<Integer, GhostBlockChunk> chunkRow : this.chunks.values()) {
-            for (GhostBlockChunk chunk : chunkRow.values()) {
-                chunk.refresh(players);
-            }
+        for (GhostBlockChunk chunk : this.chunks.values()) {
+            chunk.refresh(players);
         }
     }
 
@@ -350,6 +352,16 @@ public class GhostBlockCuboid implements Iterable<Vector> {
                 && x <= this.chunkMax.getBlockX()
                 && z >= this.chunkMin.getBlockZ()
                 && z <= this.chunkMax.getBlockZ();
+    }
+
+    /**
+     * Return whether this cuboid contains the provided y coordinate
+     *
+     * @param y the y coordinate
+     * @return whether this cuboid contains the provided y coordinate
+     */
+    public boolean containsY(int y) {
+        return y >= this.y1 && y <= this.y2;
     }
 
     /**
