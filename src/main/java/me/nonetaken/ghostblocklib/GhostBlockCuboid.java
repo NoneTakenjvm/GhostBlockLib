@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.nonetaken.ghostblocklib.util.ChunkIntCoordinatePair;
 import me.nonetaken.ghostblocklib.util.Utils;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;

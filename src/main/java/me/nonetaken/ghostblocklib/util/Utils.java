@@ -40,11 +40,11 @@ public class Utils {
     }
 
     public int toChunkCoordinate(int worldCoordinate) {
-        return worldCoordinate >> 4;
+        return (worldCoordinate - (worldCoordinate % 16)) / 16;
     }
 
     public int toWorldCoordinate(int chunkCoordinate) {
-        return chunkCoordinate << 4;
+        return chunkCoordinate * 16;
     }
 
     public Vector3i toVector3i(Vector vector) {
