@@ -27,7 +27,6 @@ public class TestGhostBlocksCommand implements CommandExecutor {
         }
         GhostBlockCuboid cuboid = new GhostBlockCuboid(player.getWorld(), player.getLocation().subtract(17, 17, 17).toVector(), player.getLocation().add(17, 0, 17).toVector());
         GhostBlockManager.registerGhostBlockCuboid(cuboid);
-        Bukkit.broadcastMessage("registered");
         cuboid.setBlocks(cuboid.iterator(), block -> {
             Vector pos = block.getVector();
             block.setType(switch (pos.getBlockX() % 16) {
@@ -50,9 +49,7 @@ public class TestGhostBlocksCommand implements CommandExecutor {
                 default -> Material.COAL_ORE;
             });
         });
-        Bukkit.broadcastMessage("set blocks");
         cuboid.refresh(player);
-        Bukkit.broadcastMessage("refreshed");
         return true;
     }
 }

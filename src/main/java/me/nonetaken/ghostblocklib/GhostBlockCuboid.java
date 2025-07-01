@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -50,20 +51,34 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         this.x2 = Math.max(min.getBlockX(), max.getBlockX());
         this.y2 = Math.max(min.getBlockY(), max.getBlockY());
         this.z2 = Math.max(min.getBlockZ(), max.getBlockZ());
-
-        // Set the chunk min and chunk max
-        int chunkX = this.x1 - (this.x1 % 16);
-        int chunkZ = this.z1 - (this.z1 % 16);
-        this.chunkMin =  new Vector(chunkX, min.getBlockY(), chunkZ);
-
-        chunkX = this.x2 + (16 - (this.x2 % 16));
-        chunkZ = this.z2 + (16 - (this.z2 % 16));
-        this.chunkMax = new Vector(chunkX, max.getBlockY(), chunkZ);
-
-        // Set the priority
         this.priority = priority;
+        this.updateBounds();
+    }
 
-        // Register the GhostBlockCuboid
+    /**
+     * Update the min and max bounds of this cuboid and re-register the chunks it covers
+     */
+    private void updateBounds() {
+        // Set the chunk min and chunk max
+        int minChunkX = this.x1 - (this.x1 % 16);
+        int minChunkZ = this.z1 - (this.z1 % 16);
+        this.chunkMin =  new Vector(minChunkX, this.y1, minChunkZ);
+
+        int maxChunkX = this.x2 + (16 - (this.x2 % 16));
+        int maxChunkZ = this.z2 + (16 - (this.z2 % 16));
+        this.chunkMax = new Vector(maxChunkX, this.y2, maxChunkZ);
+
+        // Unregister the cuboid to cached chunks are cleared
+        GhostBlockManager.unregisterGhostBlockCuboid(this);
+        // All the chunks this cuboid is within needs to be cached
+        for (int x = minChunkX; x <= maxChunkX; x += 16) {
+            int chunkX = Utils.toChunkCoordinate(x);
+            for (int z = minChunkZ; z <= maxChunkZ; z += 16) {
+                int chunkZ = Utils.toChunkCoordinate(z);
+                this.chunks.put(new ChunkIntCoordinatePair(chunkX, chunkZ), new GhostBlockChunk(this, chunkX, chunkZ));
+            }
+        }
+        // Cache the new chunks in this cuboid
         GhostBlockManager.registerGhostBlockCuboid(this);
     }
 
@@ -81,9 +96,11 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         }
         int chunkX = Utils.toChunkCoordinate(x);
         int chunkZ = Utils.toChunkCoordinate(z);
-        // Fetch the chunk from the cache, or create a new one if it isn't in the cache
-        return this.chunks.computeIfAbsent(new ChunkIntCoordinatePair(chunkX, chunkZ),
-                val -> new GhostBlockChunk(this, chunkX, chunkZ));
+        // Fetch the chunk from the cache
+        return Objects.requireNonNull(
+                this.chunks.get(new ChunkIntCoordinatePair(chunkX, chunkZ)),
+                String.format("Couldn't find chunk with coordinates %s,%s in the cuboid", chunkX, chunkZ)
+        );
     }
 
     /**
@@ -219,10 +236,7 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         this.x1 = min.getBlockX();
         this.y1 = min.getBlockY();
         this.z1 = min.getBlockZ();
-
-        int chunkX = this.x1 - (this.x1 % 16);
-        int chunkZ = this.z1 - (this.z1 % 16);
-        this.chunkMin =  new Vector(chunkX, min.getBlockY(), chunkZ);
+        this.updateBounds();
     }
 
     /**
@@ -234,10 +248,7 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         this.x2 = max.getBlockX();
         this.y2 = max.getBlockY();
         this.z2 = max.getBlockZ();
-
-        int chunkX = this.x2 + (16 - (this.x2 % 16));
-        int chunkZ = this.z2 + (16 - (this.z2 % 16));
-        this.chunkMax = new Vector(chunkX, max.getBlockY(), chunkZ);
+        this.updateBounds();
     }
 
     private int getUpperX() {

@@ -7,6 +7,7 @@ import me.nonetaken.ghostblocklib.listener.BlockPlacePacketListener;
 import me.nonetaken.ghostblocklib.listener.MapChunkPacketListener;
 import me.nonetaken.ghostblocklib.util.ChunkIntCoordinatePair;
 import me.nonetaken.ghostblocklib.util.Utils;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import javax.annotation.Nullable;
@@ -113,9 +114,9 @@ public class GhostBlockManager extends PacketListenerAbstract {
         /**
          * Return a list of all cuboids that contain the provided world x, y and z coordinates
          *
-         * @param x the x coordinate
-         * @param y the y coordinate
-         * @param z the z coordinate
+         * @param x the world x coordinate
+         * @param y the world y coordinate
+         * @param z the world z coordinate
          * @return the list of cuboids that contain the provided coordinates
          */
         public List<GhostBlockCuboid> getCuboidsAtLocation(int x, int y, int z) {
