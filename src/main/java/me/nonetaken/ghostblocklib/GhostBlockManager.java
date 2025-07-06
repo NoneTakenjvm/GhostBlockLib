@@ -51,6 +51,7 @@ public class GhostBlockManager extends PacketListenerAbstract {
      * @param cuboid the cuboid
      */
     public static void registerGhostBlockCuboid(GhostBlockCuboid cuboid) {
+        cuboid.updateBounds(false); // We will force the cuboid to update its bounds before we register it
         CUBOIDS.computeIfAbsent(cuboid.getWorld(), val -> new CuboidCoordinateHandler()).addCuboid(cuboid);
     }
 

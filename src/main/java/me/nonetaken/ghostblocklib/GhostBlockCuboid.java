@@ -39,11 +39,11 @@ public class GhostBlockCuboid implements Iterable<Vector> {
     private int changeCount = 0;
     private int priority = 0;
 
-    public GhostBlockCuboid(@Nullable World world, Vector min, Vector max) {
+    public GhostBlockCuboid(@NotNull World world, @NotNull Vector min, @NotNull Vector max) {
         this(world, min, max, 0);
     }
 
-    public GhostBlockCuboid(@Nullable World world, Vector min, Vector max, int priority) {
+    public GhostBlockCuboid(@NotNull World world, @NotNull Vector min, @NotNull Vector max, int priority) {
         this.world = world;
         this.x1 = Math.min(min.getBlockX(), max.getBlockX());
         this.y1 = Math.min(min.getBlockY(), max.getBlockY());
@@ -52,13 +52,13 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         this.y2 = Math.max(min.getBlockY(), max.getBlockY());
         this.z2 = Math.max(min.getBlockZ(), max.getBlockZ());
         this.priority = priority;
-        this.updateBounds();
+        this.updateBounds(false);
     }
 
     /**
      * Update the min and max bounds of this cuboid and re-register the chunks it covers
      */
-    private void updateBounds() {
+    public void updateBounds(boolean register) {
         // Set the chunk min and chunk max
         int minChunkX = this.x1 - (this.x1 % 16);
         int minChunkZ = this.z1 - (this.z1 % 16);
@@ -69,8 +69,11 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         this.chunkMax = new Vector(maxChunkX, this.y2, maxChunkZ);
 
         // Unregister the cuboid to cached chunks are cleared
-        GhostBlockManager.unregisterGhostBlockCuboid(this);
+        if (!this.chunks.isEmpty() && register) {
+            GhostBlockManager.unregisterGhostBlockCuboid(this);
+        }
         // All the chunks this cuboid is within needs to be cached
+        this.chunks.clear();
         for (int x = minChunkX; x <= maxChunkX; x += 16) {
             int chunkX = Utils.toChunkCoordinate(x);
             for (int z = minChunkZ; z <= maxChunkZ; z += 16) {
@@ -79,7 +82,9 @@ public class GhostBlockCuboid implements Iterable<Vector> {
             }
         }
         // Cache the new chunks in this cuboid
-        GhostBlockManager.registerGhostBlockCuboid(this);
+        if (register) {
+            GhostBlockManager.registerGhostBlockCuboid(this);
+        }
     }
 
     /**
@@ -99,7 +104,7 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         // Fetch the chunk from the cache
         return Objects.requireNonNull(
                 this.chunks.get(new ChunkIntCoordinatePair(chunkX, chunkZ)),
-                String.format("Couldn't find chunk with coordinates %s,%s in the cuboid", chunkX, chunkZ)
+                String.format("Couldn't find chunk with coordinates %s,%s in the cuboid. cached chunks=%s", chunkX, chunkZ, this.chunks.size())
         );
     }
 
@@ -236,7 +241,7 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         this.x1 = min.getBlockX();
         this.y1 = min.getBlockY();
         this.z1 = min.getBlockZ();
-        this.updateBounds();
+        this.updateBounds(true);
     }
 
     /**
@@ -248,7 +253,7 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         this.x2 = max.getBlockX();
         this.y2 = max.getBlockY();
         this.z2 = max.getBlockZ();
-        this.updateBounds();
+        this.updateBounds(true);
     }
 
     private int getUpperX() {
