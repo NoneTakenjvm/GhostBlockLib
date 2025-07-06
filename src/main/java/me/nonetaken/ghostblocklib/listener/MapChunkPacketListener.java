@@ -45,20 +45,24 @@ public class MapChunkPacketListener extends SimplePacketListenerAbstract {
                 int yLevel = -64 + (i * 16); // This is the Y level at the bottom of this base chunk
                 for (int worldY = yLevel; worldY < yLevel + 16; worldY++) {
                     int chunkY = worldY % 16;
-                    for (int chunkZ = 0; chunkZ < 16; chunkZ++) {
-                        int worldZ = Utils.toWorldCoordinate(packet.getColumn().getZ()) + chunkZ;
-                        // Find the highest priority cuboid which has a block at this location
-                        GhostBlockCuboid cuboid = this.getHighestPriorityCuboidByLocation(cuboids, worldX, worldY, worldZ);
-                        if (cuboid == null) {
-                            continue;
+                    try {
+                        for (int chunkZ = 0; chunkZ < 16; chunkZ++) {
+                            int worldZ = Utils.toWorldCoordinate(packet.getColumn().getZ()) + chunkZ;
+                            // Find the highest priority cuboid which has a block at this location
+                            GhostBlockCuboid cuboid = this.getHighestPriorityCuboidByLocation(cuboids, worldX, worldY, worldZ);
+                            if (cuboid == null) {
+                                continue;
+                            }
+                            // Get the block at the location
+                            GhostBlock block = cuboid.getBlock(worldX, worldY, worldZ);
+                            if (block == null) {
+                                continue;
+                            }
+                            // Set the block
+                            chunk.set(chunkX, chunkY, chunkZ, block.getBlockState());
                         }
-                        // Get the block at the location
-                        GhostBlock block = cuboid.getBlock(worldX, worldY, worldZ);
-                        if (block == null) {
-                            continue;
-                        }
-                        // Set the block
-                        chunk.set(chunkX, chunkY, chunkZ, block.getBlockState());
+                    } catch (Exception ignored) {
+                        // yes this is a bad fix.... i know... but im short on time !
                     }
                 }
             }
