@@ -9,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import org.checkerframework.checker.units.qual.min;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -102,10 +103,15 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         int chunkX = Utils.toChunkCoordinate(x);
         int chunkZ = Utils.toChunkCoordinate(z);
         // Fetch the chunk from the cache
-        return Objects.requireNonNull(
-                this.chunks.get(new ChunkIntCoordinatePair(chunkX, chunkZ)),
-                String.format("Couldn't find chunk with coordinates %s,%s in the cuboid. cached chunks=%s", chunkX, chunkZ, this.chunks.size())
-        );
+        GhostBlockChunk chunk = this.chunks.get(new ChunkIntCoordinatePair(chunkX, chunkZ));
+        // if the chunk is null, let's try to create it
+        if (chunk == null) {
+            if (!this.contains(x, z)) {
+                throw new NullPointerException(String.format("Tried to fetch a chunk which was outside the cuboid, coordinates: %s,%s", x, z));
+            }
+            chunk = this.chunks.put(new ChunkIntCoordinatePair(chunkX, chunkZ), new GhostBlockChunk(this, chunkX, chunkZ));
+        }
+        return chunk;
     }
 
     /**
