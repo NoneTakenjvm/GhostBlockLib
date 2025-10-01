@@ -59,6 +59,10 @@
             <url>https://repo.codemc.io/repository/maven-releases/</url>
         </repository>
         <repository>
+            <id>codemc-snapshots</id>
+            <url>https://repo.codemc.io/repository/maven-snapshots/</url>
+        </repository>
+        <repository>
             <id>wild-repo-private</id>
             <url>https://maven.wildnetwork.net/private</url>
         </repository>
@@ -73,19 +77,13 @@
         <dependency>
             <groupId>com.github.retrooper</groupId>
             <artifactId>packetevents-spigot</artifactId>
-            <version>2.4.0</version>
-            <scope>compile</scope>
+            <version>2.9.5</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.purpurmc.purpur</groupId>
             <artifactId>purpur-api</artifactId>
-            <version>1.20.6-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.purpurmc</groupId>
-            <artifactId>purpur</artifactId>
-            <version>1.20.6</version>
+            <version>1.21.8-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
