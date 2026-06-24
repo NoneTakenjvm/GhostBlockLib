@@ -45,16 +45,6 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
                         </configuration>
                     </execution>
                 </executions>
@@ -88,11 +78,12 @@
     </repositories>
 
     <dependencies>
-        <!-- Shaded into the plugin jar for runtime; also exposes util classes to compile-only consumers (e.g. SkyCloud lib/) -->
+        <!-- PacketEvents — provided at runtime by the server / PacketEvents plugin -->
         <dependency>
             <groupId>com.github.retrooper</groupId>
             <artifactId>packetevents-spigot</artifactId>
             <version>2.9.5</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.purpurmc.purpur</groupId>
