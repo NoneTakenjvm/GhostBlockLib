@@ -7,7 +7,6 @@ import me.nonetaken.ghostblocklib.listener.BlockPlacePacketListener;
 import me.nonetaken.ghostblocklib.listener.MapChunkPacketListener;
 import me.nonetaken.ghostblocklib.util.ChunkIntCoordinatePair;
 import me.nonetaken.ghostblocklib.util.Utils;
-import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import javax.annotation.Nullable;
@@ -26,6 +25,7 @@ public class GhostBlockManager extends PacketListenerAbstract {
      * Value: Map of Chunk Z Coordinate to GhostBlockCuboid
      */
     private static final Map<World, CuboidCoordinateHandler> CUBOIDS = new HashMap<>();
+    private static final Set<GhostBlockCuboid> REGISTERED = Collections.newSetFromMap(new IdentityHashMap<>());
 
     public static void init() {
         PacketEvents.getAPI().getEventManager().registerListeners(
@@ -35,8 +35,20 @@ public class GhostBlockManager extends PacketListenerAbstract {
         );
     }
 
+    static boolean isRegistered(GhostBlockCuboid cuboid) {
+        return REGISTERED.contains(cuboid);
+    }
+
+    static void clearForTests() {
+        REGISTERED.clear();
+        CUBOIDS.clear();
+    }
+
+    static int registeredCountForTests() {
+        return REGISTERED.size();
+    }
+
     /**
-     * Return the cuboid coordinate handler for the provided world#
      *
      * @param world the world
      * @return the handler
@@ -51,21 +63,39 @@ public class GhostBlockManager extends PacketListenerAbstract {
      * @param cuboid the cuboid
      */
     public static void registerGhostBlockCuboid(GhostBlockCuboid cuboid) {
-        cuboid.updateBounds(false); // We will force the cuboid to update its bounds before we register it
+        if (REGISTERED.contains(cuboid)) {
+            return;
+        }
+        cuboid.ensureChunkFootprint();
+        REGISTERED.add(cuboid);
         CUBOIDS.computeIfAbsent(cuboid.getWorld(), val -> new CuboidCoordinateHandler()).addCuboid(cuboid);
     }
 
     /**
-     * Cleanup and remove the provided {@link GhostBlockCuboid
+     * Cleanup and remove the provided {@link GhostBlockCuboid}
      *
      * @param cuboid the cuboid
      */
     public static void unregisterGhostBlockCuboid(GhostBlockCuboid cuboid) {
+        REGISTERED.remove(cuboid);
         CuboidCoordinateHandler handler = CUBOIDS.get(cuboid.getWorld());
         if (handler != null) {
             handler.removeCuboid(cuboid);
         }
         cuboid.getChunks().clear();
+    }
+
+    static void patchCuboidIndex(GhostBlockCuboid cuboid, Collection<ChunkIntCoordinatePair> removedKeys, Collection<ChunkIntCoordinatePair> addedKeys) {
+        if (!REGISTERED.contains(cuboid) || cuboid.getWorld() == null) {
+            return;
+        }
+        CuboidCoordinateHandler handler = getCuboidCoordinateHandler(cuboid.getWorld());
+        if (!removedKeys.isEmpty()) {
+            handler.removeCuboidFromChunks(cuboid, removedKeys);
+        }
+        if (!addedKeys.isEmpty()) {
+            handler.addCuboidToChunks(cuboid, addedKeys);
+        }
     }
 
     public static class CuboidCoordinateHandler {
@@ -78,10 +108,16 @@ public class GhostBlockManager extends PacketListenerAbstract {
          * @param cuboid the cuboid to add
          */
         public void addCuboid(GhostBlockCuboid cuboid) {
-            for (Map.Entry<ChunkIntCoordinatePair, GhostBlockChunk> entry : cuboid.getChunks().entrySet()) {
-                List<GhostBlockCuboid> cuboidList = this.cuboids.computeIfAbsent(entry.getKey(), val -> new ArrayList<>());
-                cuboidList.add(cuboid);
-                cuboidList.sort(Comparator.comparingInt(GhostBlockCuboid::getPriority));
+            this.addCuboidToChunks(cuboid, cuboid.getChunks().keySet());
+        }
+
+        void addCuboidToChunks(GhostBlockCuboid cuboid, Collection<ChunkIntCoordinatePair> keys) {
+            for (ChunkIntCoordinatePair key : keys) {
+                List<GhostBlockCuboid> cuboidList = this.cuboids.computeIfAbsent(key, val -> new ArrayList<>());
+                if (!cuboidList.contains(cuboid)) {
+                    cuboidList.add(cuboid);
+                    cuboidList.sort(Comparator.comparingInt(GhostBlockCuboid::getPriority));
+                }
             }
         }
 
@@ -91,13 +127,21 @@ public class GhostBlockManager extends PacketListenerAbstract {
          * @param cuboid the cuboid to remove
          */
         public void removeCuboid(GhostBlockCuboid cuboid) {
-            for (Map.Entry<ChunkIntCoordinatePair, GhostBlockChunk> entry : cuboid.getChunks().entrySet()) {
-                List<GhostBlockCuboid> cuboidList = this.cuboids.get(entry.getKey());
+            this.removeCuboidFromChunks(cuboid, cuboid.getChunks().keySet());
+        }
+
+        void removeCuboidFromChunks(GhostBlockCuboid cuboid, Collection<ChunkIntCoordinatePair> keys) {
+            for (ChunkIntCoordinatePair key : keys) {
+                List<GhostBlockCuboid> cuboidList = this.cuboids.get(key);
                 if (cuboidList == null || cuboidList.isEmpty()) {
                     continue;
                 }
                 cuboidList.remove(cuboid);
-                cuboidList.sort(Comparator.comparingInt(GhostBlockCuboid::getPriority));
+                if (cuboidList.isEmpty()) {
+                    this.cuboids.remove(key);
+                } else {
+                    cuboidList.sort(Comparator.comparingInt(GhostBlockCuboid::getPriority));
+                }
             }
         }
 
@@ -139,7 +183,7 @@ public class GhostBlockManager extends PacketListenerAbstract {
         @Nullable
         public GhostBlockCuboid getHighestPriorityCuboidByChunk(int x, int z) {
             List<GhostBlockCuboid> cuboids = this.getCuboidsAtChunk(x, z);
-            if (cuboids == null) {
+            if (cuboids.isEmpty()) {
                 return null;
             }
             return cuboids.getLast();

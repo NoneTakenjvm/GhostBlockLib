@@ -8,20 +8,22 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 /*
  * Project: me.nonetaken.ghostblocklib | Author: NoneTaken#0001
  * Created: 01/07/2023 at 15:24
- *
  */
-@SuppressWarnings("ALL")
 @Getter
 public class GhostBlock {
 
-    private int x; // world x coordinatae
-    private int y; // world y coordinate
-    private int z; // world z coordinate
+    private static final Map<Material, WrappedBlockState> BLOCK_STATE_CACHE = new EnumMap<>(Material.class);
+
+    private int x;
+    private int y;
+    private int z;
     private Material material = Material.AIR;
-    private WrappedBlockState blockState;
 
     public GhostBlock(Vector vector) {
         this(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
@@ -33,16 +35,20 @@ public class GhostBlock {
         this.z = z;
     }
 
+    void setPosition(int x, int y, int z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
     /**
      * Set this ghost block's type to the provided {@link Material}
      *
      * @param material the material
-     *
      * @return this ghost block
      */
     public GhostBlock setType(Material material) {
         this.material = material;
-        this.blockState = SpigotConversionUtil.fromBukkitBlockData(this.material.createBlockData());
         return this;
     }
 
@@ -59,7 +65,6 @@ public class GhostBlock {
      * Return the position of this ghost block as a {@link Location} in the provided {@link World}
      *
      * @param world the world
-     *
      * @return the location
      */
     public Location getLocation(World world) {
@@ -67,10 +72,19 @@ public class GhostBlock {
     }
 
     public int getGlobalId() {
-        return this.blockState.getGlobalId();
+        return this.getBlockState().getGlobalId();
     }
 
     public WrappedBlockState getBlockState() {
-        return this.blockState;
+        return getBlockState(this.material);
+    }
+
+    static WrappedBlockState getBlockState(Material material) {
+        return BLOCK_STATE_CACHE.computeIfAbsent(material, value ->
+                SpigotConversionUtil.fromBukkitBlockData(value.createBlockData()));
+    }
+
+    static int getGlobalId(Material material) {
+        return material == Material.AIR ? 0 : getBlockState(material).getGlobalId();
     }
 }

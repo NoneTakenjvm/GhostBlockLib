@@ -6,16 +6,17 @@ import me.nonetaken.ghostblocklib.util.ChunkIntCoordinatePair;
 import me.nonetaken.ghostblocklib.util.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import org.checkerframework.checker.units.qual.min;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -57,34 +58,59 @@ public class GhostBlockCuboid implements Iterable<Vector> {
     }
 
     /**
-     * Update the min and max bounds of this cuboid and re-register the chunks it covers
+     * Update the min and max bounds of this cuboid and sync its chunk footprint.
+     * If this cuboid is registered, the spatial index is patched incrementally.
+     *
+     * @param register retained for API compatibility; registration is never implied by this call
      */
+    @SuppressWarnings("unused")
     public void updateBounds(boolean register) {
-        // Set the chunk min and chunk max
+        Set<ChunkIntCoordinatePair> oldKeys = new HashSet<>(this.chunks.keySet());
+        Set<ChunkIntCoordinatePair> newKeys = this.computeChunkFootprint();
+        this.applyChunkFootprintDiff(oldKeys, newKeys);
+        if (GhostBlockManager.isRegistered(this)) {
+            Set<ChunkIntCoordinatePair> removedKeys = new HashSet<>(oldKeys);
+            removedKeys.removeAll(newKeys);
+            Set<ChunkIntCoordinatePair> addedKeys = new HashSet<>(newKeys);
+            addedKeys.removeAll(oldKeys);
+            GhostBlockManager.patchCuboidIndex(this, removedKeys, addedKeys);
+        }
+    }
+
+    void ensureChunkFootprint() {
+        Set<ChunkIntCoordinatePair> oldKeys = new HashSet<>(this.chunks.keySet());
+        Set<ChunkIntCoordinatePair> newKeys = this.computeChunkFootprint();
+        this.applyChunkFootprintDiff(oldKeys, newKeys);
+    }
+
+    private Set<ChunkIntCoordinatePair> computeChunkFootprint() {
         int minChunkX = this.x1 - (this.x1 % 16);
         int minChunkZ = this.z1 - (this.z1 % 16);
-        this.chunkMin =  new Vector(minChunkX, this.y1, minChunkZ);
+        this.chunkMin = new Vector(minChunkX, this.y1, minChunkZ);
 
         int maxChunkX = this.x2 + (16 - (this.x2 % 16));
         int maxChunkZ = this.z2 + (16 - (this.z2 % 16));
         this.chunkMax = new Vector(maxChunkX, this.y2, maxChunkZ);
 
-        // Unregister the cuboid to cached chunks are cleared
-        if (!this.chunks.isEmpty() && register) {
-            GhostBlockManager.unregisterGhostBlockCuboid(this);
-        }
-        // All the chunks this cuboid is within needs to be cached
-        this.chunks.clear();
+        Set<ChunkIntCoordinatePair> footprint = new HashSet<>();
         for (int x = minChunkX; x <= maxChunkX; x += 16) {
             int chunkX = Utils.toChunkCoordinate(x);
             for (int z = minChunkZ; z <= maxChunkZ; z += 16) {
                 int chunkZ = Utils.toChunkCoordinate(z);
-                this.chunks.put(new ChunkIntCoordinatePair(chunkX, chunkZ), new GhostBlockChunk(this, chunkX, chunkZ));
+                footprint.add(new ChunkIntCoordinatePair(chunkX, chunkZ));
             }
         }
-        // Cache the new chunks in this cuboid
-        if (register) {
-            GhostBlockManager.registerGhostBlockCuboid(this);
+        return footprint;
+    }
+
+    private void applyChunkFootprintDiff(Set<ChunkIntCoordinatePair> oldKeys, Set<ChunkIntCoordinatePair> newKeys) {
+        for (ChunkIntCoordinatePair key : oldKeys) {
+            if (!newKeys.contains(key)) {
+                this.chunks.remove(key);
+            }
+        }
+        for (ChunkIntCoordinatePair key : newKeys) {
+            this.chunks.computeIfAbsent(key, val -> new GhostBlockChunk(this, val.getChunkX(), val.getChunkZ()));
         }
     }
 
@@ -141,6 +167,14 @@ public class GhostBlockCuboid implements Iterable<Vector> {
         }
     }
 
+    private synchronized void setMaterial(int x, int y, int z, Material material) {
+        GhostBlockChunk chunk = this.getGhostBlockChunk(x, z);
+        if (chunk != null) {
+            chunk.setMaterial(x, y, z, material);
+            ++this.changeCount;
+        }
+    }
+
     /**
      * Fill this cuboid region with
      *
@@ -187,10 +221,11 @@ public class GhostBlockCuboid implements Iterable<Vector> {
      * @param consumer the consumer to set the ghost block type, if required
      */
     public synchronized void setBlocks(Vector[] vectors, Consumer<GhostBlock> consumer) {
+        GhostBlock scratch = new GhostBlock(0, 0, 0);
         for (Vector vector : vectors) {
-            GhostBlock block = new GhostBlock(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
-            consumer.accept(block);
-            this.setBlock(block);
+            scratch.setPosition(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
+            consumer.accept(scratch);
+            this.setMaterial(scratch.getX(), scratch.getY(), scratch.getZ(), scratch.getMaterial());
         }
     }
 
@@ -202,11 +237,12 @@ public class GhostBlockCuboid implements Iterable<Vector> {
      * @param consumer the consumer to set the ghost block type, if required
      */
     public synchronized void setBlocks(GhostBlockCuboidIterator iterator, Consumer<GhostBlock> consumer) {
+        GhostBlock scratch = new GhostBlock(0, 0, 0);
         while (iterator.hasNext()) {
             Vector next = iterator.next();
-            GhostBlock block = new GhostBlock(next.getBlockX(), next.getBlockY(), next.getBlockZ());
-            consumer.accept(block);
-            this.setBlock(block);
+            scratch.setPosition(next.getBlockX(), next.getBlockY(), next.getBlockZ());
+            consumer.accept(scratch);
+            this.setMaterial(scratch.getX(), scratch.getY(), scratch.getZ(), scratch.getMaterial());
         }
     }
 
@@ -444,9 +480,7 @@ public class GhostBlockCuboid implements Iterable<Vector> {
                 throw new IllegalArgumentException("Invalid direction " + dir);
             }
         }
-        // Update the chunk min and chunk max
-        this.setMin(this.getMin());
-        this.setMax(this.getMax());
+        this.updateBounds(true);
     }
 
     @Override
